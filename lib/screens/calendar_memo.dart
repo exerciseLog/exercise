@@ -10,11 +10,24 @@ class CalendarMemo extends StatefulWidget {
 }
 
 class _CalendarMemoState extends State<CalendarMemo> {
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: TableCalendar(
-          focusedDay: kToday, firstDay: kFirstDay, lastDay: kLastDay),
+        focusedDay: kToday,
+        firstDay: kFirstDay,
+        lastDay: kLastDay,
+        calendarFormat: _calendarFormat,
+        onFormatChanged: (format) {
+          if (_calendarFormat != format) {
+            setState(() {
+              _calendarFormat = format;
+            });
+          }
+        },
+      ),
     );
   }
 }
