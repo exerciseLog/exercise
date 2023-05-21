@@ -1,5 +1,5 @@
 import 'package:elegant_notification/elegant_notification.dart';
-import 'package:exerciselog/provider/api_provider.dart';
+import 'package:exercise_log/provider/api_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../api_service.dart';
@@ -33,9 +33,9 @@ class _NutApiPageState extends State<NutApiPage> {
             TextFormField(
               controller: apiCtrl,
               decoration: const InputDecoration(
-                  icon: Icon(Icons.add_box_outlined), hintText: '검색',
-                  iconColor: Color.fromARGB(200, 20, 20, 255)
-              ),
+                  icon: Icon(Icons.add_box_outlined),
+                  hintText: '검색',
+                  iconColor: Color.fromARGB(200, 20, 20, 255)),
             ),
             const SizedBox(
               height: 20,
@@ -48,26 +48,25 @@ class _NutApiPageState extends State<NutApiPage> {
                   child: ElevatedButton(
                       onPressed: () {
                         String foodName = apiCtrl.text;
-                        if(foodName == '') {
+                        if (foodName == '') {
                           ElegantNotification.error(
-                              title:  const Text("오류"),
-                              description:  const Text("검색할 음식을 입력해 주세요.")
-                          ).show(context);
+                                  title: const Text("오류"),
+                                  description: const Text("검색할 음식을 입력해 주세요."))
+                              .show(context);
                           return;
                         }
-                        Future<List<NutApiModel>> resultList = ApiService.getNutrition(foodName);
+                        Future<List<NutApiModel>> resultList =
+                            ApiService.getNutrition(foodName);
                         api.setResult(resultList);
                         apiCtrl.clear();
                       },
-                      child: const Text('검색하기')
-                  ),
+                      child: const Text('검색하기')),
                 ),
                 OutlinedButton(
                     onPressed: () {
                       tDialog(context);
                     },
-                    child: const Text("다이얼로그 테스트")
-                )
+                    child: const Text("다이얼로그 테스트"))
               ],
             ),
             const SizedBox(
@@ -92,10 +91,10 @@ class _NutApiPageState extends State<NutApiPage> {
                             name: api.inList[index].name,
                             maker: api.inList[index].maker,
                             kcal: api.inList[index].kcal,
-                            size: api.inList[index].size
-                        );
+                            size: api.inList[index].size);
                       },
-                      separatorBuilder: (BuildContext context, int index) => const Divider(),
+                      separatorBuilder: (BuildContext context, int index) =>
+                          const Divider(),
                     ),
 
                     /*Text(
@@ -112,39 +111,36 @@ class _NutApiPageState extends State<NutApiPage> {
     );
   }
 
-  Future tDialog(BuildContext context) async{
+  Future tDialog(BuildContext context) async {
     return showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text("입력"),
+            title: const Text("입력"),
             content: TextField(
               controller: dlgCtrl,
               decoration: const InputDecoration(hintText: "테스트용"),
             ),
             actions: [
               TextButton(
-                child: Text("확인"),
+                child: const Text("확인"),
                 onPressed: () {
                   Navigator.pop(context);
                 },
               )
             ],
           );
-        }
-    );
+        });
   }
 }
 
-
 class ApiListItem extends StatelessWidget {
-  const ApiListItem ({
-    super.key,
-    required this.name,
-    required this.maker,
-    required this.kcal,
-    required this.size
-  });
+  const ApiListItem(
+      {super.key,
+      required this.name,
+      required this.maker,
+      required this.kcal,
+      required this.size});
 
   final String name;
   final String maker;
@@ -165,19 +161,17 @@ class ApiListItem extends StatelessWidget {
               onChanged: (value) {
                 api.setCalorie(kcal);
                 ElegantNotification.info(
-                    title: const Text("정보"),
-                    description: Text("선택된 음식의 열량: $kcal")
-                ).show(context);
-              }
-          ),
+                        title: const Text("정보"),
+                        description: Text("선택된 음식의 열량: $kcal"))
+                    .show(context);
+              }),
           Expanded(
               child: _Description(
-                name: name,
-                maker: maker,
-                kcal: kcal,
-                size: size,
-              )
-          ),
+            name: name,
+            maker: maker,
+            kcal: kcal,
+            size: size,
+          )),
           const Icon(Icons.more_vert, size: 15),
         ],
       ),
@@ -185,14 +179,12 @@ class ApiListItem extends StatelessWidget {
   }
 }
 
-
 class _Description extends StatelessWidget {
-  const _Description({
-    required this.name,
-    required this.maker,
-    required this.kcal,
-    required this.size
-  });
+  const _Description(
+      {required this.name,
+      required this.maker,
+      required this.kcal,
+      required this.size});
 
   final String name;
   final String maker;
@@ -208,10 +200,8 @@ class _Description extends StatelessWidget {
           children: [
             Text(
               name,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14.0
-              ),
+              style:
+                  const TextStyle(fontWeight: FontWeight.w500, fontSize: 14.0),
             ),
             const Padding(padding: EdgeInsets.symmetric(vertical: 2.0)),
             Text(
@@ -224,7 +214,6 @@ class _Description extends StatelessWidget {
               style: const TextStyle(fontSize: 10.0),
             ),
           ],
-        )
-    );
+        ));
   }
 }
