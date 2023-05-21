@@ -1,6 +1,7 @@
 import 'package:exercise_log/notifier/example_model.dart';
 import 'package:exercise_log/screens/nutrition_screen.dart';
 import 'package:exercise_log/screens/calendar_memo.dart';
+import 'package:exercise_log/screens/walk_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -61,6 +62,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const NutApiPage())),
                 child: const Text("칼로리")),
+            const SizedBox(
+              height: 30,
+            ),
+            ElevatedButton(
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const BmiScreen(
+                              title: 'BMI',
+                            ))),
+                child: const Text("만보기")),
           ]),
         ));
   }
