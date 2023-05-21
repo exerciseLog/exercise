@@ -1,8 +1,13 @@
+import 'package:exercise_log/notifier/example_model.dart';
 import 'package:exercise_log/screens/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const App());
+  runApp(ChangeNotifierProvider(
+    create: (_) => ExampleModel(),
+    child: const App(),
+  ));
 }
 
 class App extends StatelessWidget {
