@@ -2,17 +2,17 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:exercise_log/table/todos.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:exercise_log/table/memo.dart';
 
-part "db_helper.g.dart";
+part 'todo_db_helper.g.dart';
 
 @DriftDatabase(
-  tables: [Memo],
+  tables: [Todos],
 )
-class DbHelper extends _$DbHelper {
-  DbHelper() : super(_openConnection());
+class TodoDbHelper extends _$TodoDbHelper {
+  TodoDbHelper() : super(_openConnection());
 
   @override
   int get schemaVersion => 1;
