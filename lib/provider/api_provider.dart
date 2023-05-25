@@ -11,12 +11,14 @@ class ApiProvider with ChangeNotifier {
 
   getLength() => inList.length;
 
-  Future<void> setResult(Future<List<NutApiModel>> resultList) async {
-    inProgress = true;    notifyListeners();
+  setResult(List<NutApiModel> resultList) {
+    inList = resultList;
+    notifyListeners();
+  }
 
-    inList = await resultList;
-
-    inProgress = false;    notifyListeners();
+  modifyBool() {
+    inProgress = !inProgress;
+    notifyListeners();
   }
 
   void setCalorie(String cal) {
@@ -25,4 +27,5 @@ class ApiProvider with ChangeNotifier {
     log(test.toString());
     notifyListeners();
   }
+
 }
