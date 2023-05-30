@@ -1,4 +1,7 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:exercise_log/screens/utils.dart';
+import 'package:exercise_log/table/db_helper.dart';
+import 'package:exercise_log/table/memo_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -13,6 +16,7 @@ class CalendarMemo extends StatefulWidget {
 
 class _CalendarMemoState extends State<CalendarMemo> {
   late final ValueNotifier<List<Event>> _selectedEvents;
+  final DbHelper dbHelper = DbHelper();
   CalendarFormat _calendarFormat = CalendarFormat.month;
   RangeSelectionMode _rangeSelectionMode = RangeSelectionMode
       .toggledOff; // Can be toggled on/off by longpressing a date
@@ -92,6 +96,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
   }
 
   void _memoSaved() {
+    MemoDao(dbHelper).createMemo(MemoCompanion(memo: drift.Value(_memoController.text),modifyTime: drift.Value(DateTime.now()),));
     Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
   }
 

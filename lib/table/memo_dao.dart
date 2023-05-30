@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:exercise_log/table/db_helper.dart';
 import 'package:exercise_log/table/memo.dart';
+import 'package:intl/intl.dart';
 
 part 'memo_dao.g.dart';
 
@@ -8,15 +9,23 @@ part 'memo_dao.g.dart';
 class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
   MemoDao(DbHelper db) : super(db);
 
-  Future<Future<MemoData>> findById(int id) async {
+  Future<MemoData> findById(int id) async {
     return (select(memo)..where((t) => t.id.equals(id))).getSingle();
   }
 
-  Future<Future<MemoData>> findByWriteTime(DateTime writeTime) async {
+  Future<MemoData> findByWriteTime(DateTime writeTime) async {
     return (select(memo)..where((t) => t.writeTime.equals(writeTime))).getSingle();
   }
 
-  Future<int> createAccount(MemoCompanion data) async {
+  Future<List<MemoData>> findMonthByWriteTime(DateTime writeTime) {
+    var _startYear = DateFormat('yyyy').format(writeTime);
+    var _startMonth = DateFormat('MM').format(writeTime);
+    return (select(memo)..where((t) => t.writeTime.isBetween(
+        (DateTime.parse('$_startYear-$_startMonth-1') as Expression<DateTime>),(DateTime.parse('$_startYear-$_startMonth-31')as Expression<DateTime>)
+    ))).get();
+  }
+
+  Future<int> createMemo(MemoCompanion data) async {
     return into(memo).insert(data);
   }
 
