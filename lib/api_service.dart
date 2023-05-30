@@ -13,6 +13,9 @@ class ApiService {
     if (response.statusCode == 200) {
       final resJson = jsonDecode(response.body);
       final results = resJson['I2790']['row'];
+      if (results == null) {
+        return Future.error('검색된 결과가 없습니다.');
+      }
       for (var result in results) {
         final instance = NutApiModel.fromJson(result);
         resList.add(instance);

@@ -1,5 +1,6 @@
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/notifier/example_model.dart';
+import 'package:exercise_log/provider/calorie_provider.dart';
 import 'package:exercise_log/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,10 +20,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<int>.value(value: 50),
         ChangeNotifierProvider<ApiProvider>(
           create: (BuildContext context) => ApiProvider(),
-        )
+        ),
+        ChangeNotifierProvider<CalorieProvider>(
+          create: (BuildContext context) => CalorieProvider(),
+          )
       ],
       child: const MaterialApp(
         home: HomeScreen(),

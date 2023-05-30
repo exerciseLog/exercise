@@ -1,5 +1,6 @@
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:exercise_log/provider/api_provider.dart';
+import 'package:exercise_log/provider/calorie_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../api_service.dart';
@@ -18,9 +19,11 @@ class _NutApiPageState extends State<NutApiPage> {
 
   @override
   Widget build(BuildContext context) {
-    var check = Provider.of<int>(context);
     var api = Provider.of<ApiProvider>(context);
-
+    var cal = Provider.of<CalorieProvider>(context);
+    var selectedCal = cal.selectedCal;
+    var numCal = cal.getCalorie;
+    
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -28,50 +31,63 @@ class _NutApiPageState extends State<NutApiPage> {
       ),
       body: Center(
         child: Column(
-          // mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            TextFormField(
-              controller: apiCtrl,
-              decoration: const InputDecoration(
-                  icon: Icon(Icons.add_box_outlined),
-                  hintText: '검색',
-                  iconColor: Color.fromARGB(200, 20, 20, 255)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  flex: 3,
+                  child: TextFormField(
+                    controller: apiCtrl,
+                    decoration: const InputDecoration(
+                      icon: Icon(Icons.add_box_outlined),
+                      hintText: '검색',
+                      iconColor: Color.fromARGB(200, 20, 20, 255)),
+                  )
+                ),
+                Flexible(
+                  flex: 1,
+                  child: ElevatedButton(
+                      onPressed: () async {
+                        api.modifyBool();
+                        String foodName = apiCtrl.text;
+                          if (foodName == '') {
+                            ElegantNotification.error(
+                                  title: const Text("오류"),
+                                  description: const Text("검색할 음식을 입력해 주세요."))
+                              .show(context);
+                            api.modifyBool();
+                            return;
+                          }
+                                                   
+                        try {
+                          Future<List<NutApiModel>> resultList =
+                            ApiService.getNutrition(foodName);
+                          List<NutApiModel> list = await resultList;
+                          api.setResult(list);
+                          apiCtrl.clear();
+                        }
+                        catch(err) {
+                          ElegantNotification.error(
+                                  title: const Text("오류"),
+                                  description: Text('$err'))
+                              .show(context);
+                        }
+                        finally {
+                          api.modifyBool();
+                        }
+                        
+                      },
+                      child: const Text('검색하기')
+                  ),
+                ),
+                        
+              ],
             ),
             const SizedBox(
               height: 20,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(right: 6),
-                  child: ElevatedButton(
-                      onPressed: () {
-                        String foodName = apiCtrl.text;
-                        if (foodName == '') {
-                          ElegantNotification.error(
-                                  title: const Text("오류"),
-                                  description: const Text("검색할 음식을 입력해 주세요."))
-                              .show(context);
-                          return;
-                        }
-                        Future<List<NutApiModel>> resultList =
-                            ApiService.getNutrition(foodName);
-                        api.setResult(resultList);
-                        apiCtrl.clear();
-                      },
-                      child: const Text('검색하기')),
-                ),
-                OutlinedButton(
-                    onPressed: () {
-                      tDialog(context);
-                    },
-                    child: const Text("다이얼로그 테스트"))
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
+            
             Visibility(
               visible: api.inProgress,
               child: const CircularProgressIndicator(),
@@ -91,47 +107,68 @@ class _NutApiPageState extends State<NutApiPage> {
                             name: api.inList[index].name,
                             maker: api.inList[index].maker,
                             kcal: api.inList[index].kcal,
-                            size: api.inList[index].size);
+                            size: api.inList[index].size,
+                            carb: api.inList[index].carb,
+                            protien: api.inList[index].protien,
+                            fat: api.inList[index].fat,
+                            sugar: api.inList[index].sugar,
+                            sodium: api.inList[index].sodium,
+                            col: api.inList[index].col);
                       },
                       separatorBuilder: (BuildContext context, int index) =>
                           const Divider(),
                     ),
-
-                    /*Text(
-                        api.getResult(),
-                        style: const TextStyle(height: 1.5, fontSize: 16),
-                      ),*/
                   ),
                 ],
               ),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(right: 6),
+                  child: OutlinedButton(
+                    onPressed: () {
+                      cal.addCalorie(selectedCal);
+                      ElegantNotification.success(
+                        title: const Text("성공"),
+                        description: Text(
+                        "선택된 음식의 열량 $selectedCal kcal이 추가되었습니다."))
+                      .show(context);
+                      }, 
+                      child: const Text("추가")
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if(numCal == "0.0") {
+                      ElegantNotification.error(
+                      title: const Text("실패"),
+                      description: const Text("음식을 검색해 추가한 다음 시도해 주세요."))
+                      .show(context);
+                      
+                    }
+                    else {
+                      ElegantNotification.success(
+                        title: const Text("성공"),
+                        description: Text("추가된 칼로리: $numCal"))
+                        .show(context);
+                      cal.resetCalorie();
+                    }
+                    
+                }, 
+                child: const Text("등록")
+                ),
+                
+              ]
+            ),
+            Text("<디버그용> 현재 입력된 열량: $numCal")
           ],
         ),
       ),
     );
   }
-
-  Future tDialog(BuildContext context) async {
-    return showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text("입력"),
-            content: TextField(
-              controller: dlgCtrl,
-              decoration: const InputDecoration(hintText: "테스트용"),
-            ),
-            actions: [
-              TextButton(
-                child: const Text("확인"),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              )
-            ],
-          );
-        });
-  }
+  
 }
 
 class ApiListItem extends StatelessWidget {
@@ -140,16 +177,28 @@ class ApiListItem extends StatelessWidget {
       required this.name,
       required this.maker,
       required this.kcal,
-      required this.size});
+      required this.size,
+      required this.carb,
+      required this.protien,
+      required this.fat,
+      required this.sugar,
+      required this.sodium,
+      required this.col});
 
   final String name;
   final String maker;
   final String kcal;
   final String size;
+  final String carb;
+  final String protien;
+  final String fat;
+  final String sugar;
+  final String sodium;
+  final String col;
 
   @override
   Widget build(BuildContext context) {
-    var api = Provider.of<ApiProvider>(context);
+    var cal = Provider.of<CalorieProvider>(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
@@ -157,13 +206,13 @@ class ApiListItem extends StatelessWidget {
         children: [
           Radio(
               value: kcal,
-              groupValue: api.selectedCal,
-              onChanged: (value) {
-                api.setCalorie(kcal);
+              groupValue: cal.selectedCal,
+              onChanged: kcal == '' ? null : (value) {
+                cal.setCalorie(kcal);  
                 ElegantNotification.info(
-                        title: const Text("정보"),
-                        description: Text("선택된 음식의 열량: $kcal"))
-                    .show(context);
+                      title: const Text("정보"),
+                      description: Text("선택된 음식의 열량: $kcal"))
+                  .show(context);
               }),
           Expanded(
               child: _Description(
@@ -172,7 +221,79 @@ class ApiListItem extends StatelessWidget {
             kcal: kcal,
             size: size,
           )),
-          const Icon(Icons.more_vert, size: 15),
+           IconButton(
+            icon: const Icon(Icons.more_vert), 
+            iconSize: 15,
+            onPressed: () async {
+              return showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text("영양 상세"),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Text(
+                            "식품명: $name",
+                            style: const TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.w600
+                            ),
+                          ),
+                          Text("1회 제공량: $size g", 
+                            style: const TextStyle(fontSize: 16.0)
+                          ),
+                          _DialogNutDetail(
+                            name: "열량", 
+                            value: kcal, 
+                            unit: "kcal"
+                          ),
+                          _DialogNutDetail(
+                            name: "탄수화물", 
+                            value: carb, 
+                            unit: "g"
+                          ),
+                          _DialogNutDetail(
+                            name: "단백질", 
+                            value: protien, 
+                            unit: "g"
+                          ),
+                          _DialogNutDetail(
+                            name: "지방", 
+                            value: fat, 
+                            unit: "g"
+                          ),
+                          _DialogNutDetail(
+                            name: "당류", 
+                            value: sugar, 
+                            unit: "g"
+                          ),
+                          _DialogNutDetail(
+                            name: "나트륨", 
+                            value: sodium, 
+                            unit: "mg"
+                          ),
+                          _DialogNutDetail(
+                            name: "콜레스테롤", 
+                            value: col, 
+                            unit: "mg"
+                          ),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        child: const Text("확인"),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      )
+                    ],
+                  );
+                });
+              },
+            ),
+
         ],
       ),
     );
@@ -215,5 +336,27 @@ class _Description extends StatelessWidget {
             ),
           ],
         ));
+  }
+}
+
+class _DialogNutDetail extends StatelessWidget {
+  const _DialogNutDetail({
+    required this.name,
+    required this.value,
+    required this.unit,
+    });
+
+  final String name;
+  final String value;
+  final String unit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      visible: value != '' ? true : false,
+      child: Text("$name: $value $unit",
+        style: const TextStyle(fontSize: 14.0)
+      )
+    );
   }
 }
