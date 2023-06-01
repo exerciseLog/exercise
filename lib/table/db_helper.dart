@@ -24,7 +24,7 @@ LazyDatabase _openConnection() {
     final dbFolder = await getApplicationDocumentsDirectory();
 
     // 해당 경로에 파일 생성
-    final file = File(p.join(dbFolder.path, 'inner_db'));
+    final file = File(p.join(dbFolder.path, 'inner_db.db'));
     return NativeDatabase.createInBackground(file);
   });
 }
