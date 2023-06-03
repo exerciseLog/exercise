@@ -18,8 +18,5 @@ class ApiProvider with ChangeNotifier {
     inProgress = !inProgress;
     notifyListeners();
   }
-
-  
-
   
 }

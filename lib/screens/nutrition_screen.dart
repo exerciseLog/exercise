@@ -2,9 +2,11 @@ import 'package:elegant_notification/elegant_notification.dart';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calorie_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../api_service.dart';
 import '../model/nutrition_model.dart';
+import 'package:flutter_cupertino_datetime_picker/flutter_cupertino_datetime_picker.dart';
 
 class NutApiPage extends StatefulWidget {
   const NutApiPage({Key? key}) : super(key: key);
@@ -16,7 +18,7 @@ class NutApiPage extends StatefulWidget {
 class _NutApiPageState extends State<NutApiPage> {
   TextEditingController apiCtrl = TextEditingController();
   TextEditingController dlgCtrl = TextEditingController();
-
+  
   @override
   Widget build(BuildContext context) {
     var api = Provider.of<ApiProvider>(context);
@@ -66,6 +68,7 @@ class _NutApiPageState extends State<NutApiPage> {
                           List<NutApiModel> list = await resultList;
                           api.setResult(list);
                           apiCtrl.clear();
+                          cal.resetList();
                         }
                         catch(err) {
                           ElegantNotification.error(
@@ -104,6 +107,7 @@ class _NutApiPageState extends State<NutApiPage> {
                       itemCount: api.getLength(),
                       itemBuilder: (BuildContext context, int index) {
                         return ApiListItem(
+                            index: index,
                             name: api.inList[index].name,
                             maker: api.inList[index].maker,
                             kcal: api.inList[index].kcal,
@@ -129,40 +133,62 @@ class _NutApiPageState extends State<NutApiPage> {
                   margin: const EdgeInsets.only(right: 6),
                   child: OutlinedButton(
                     onPressed: () {
-                      cal.addCalorie(selectedCal);
-                      ElegantNotification.success(
-                        title: const Text("성공"),
-                        description: Text(
-                        "선택된 음식의 열량 $selectedCal kcal이 추가되었습니다."))
-                      .show(context);
-                      }, 
-                      child: const Text("추가")
+                      if(selectedCal == '') {
+                        ElegantNotification.error(
+                              title: const Text("오류"),
+                              description: const Text('선택된 음식이 없습니다.'))
+                              .show(context);
+                      }
+                      else {
+                        cal.addCalorie(selectedCal);
+                        ElegantNotification.success(
+                          title: const Text("성공"),
+                          description: Text(
+                          "선택된 음식의 열량 $selectedCal kcal이 추가되었습니다."))
+                        .show(context);
+                        cal.resetList();
+                      }
+                     
+                    }, 
+                    child: const Text("추가")
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if(numCal == "0.0") {
+                    if(numCal == "0" || numCal == "0.0") {
                       ElegantNotification.error(
                       title: const Text("실패"),
                       description: const Text("음식을 검색해 추가한 다음 시도해 주세요."))
                       .show(context);
-                      
                     }
                     else {
-                      ElegantNotification.success(
-                        title: const Text("성공"),
-                        description: Text("추가된 칼로리: $numCal"))
-                        .show(context);
-                      cal.resetCalorie();
+                      return DatePicker.showDatePicker(
+                        context,
+                        dateFormat: 'yyyy MMMM dd',
+                        initialDateTime: DateTime.now(),
+                        minDateTime: DateTime(2000),
+                        maxDateTime: DateTime(2100),
+                        onMonthChangeStartWithFirstDate: false,
+                        locale: DateTimePickerLocale.ko,
+                        onConfirm: (dateTime, List<int> index) {
+                          DateTime selDate = dateTime;
+                          var res = DateFormat('yyyy-MM-dd').format(selDate);
+                          ElegantNotification.success(
+                            title: const Text("성공"),
+                            description: Text("$res에 추가된 칼로리: $numCal"))
+                            .show(context);
+                          cal.resetCalorie();
+                        }
+                      );
+                     
                     }
-                    
-                }, 
+                  }, 
                 child: const Text("등록")
                 ),
-                
               ]
             ),
-            Text("<디버그용> 현재 입력된 열량: $numCal")
+
+            Text("현재 입력된 열량: $numCal")
           ],
         ),
       ),
@@ -174,6 +200,7 @@ class _NutApiPageState extends State<NutApiPage> {
 class ApiListItem extends StatelessWidget {
   const ApiListItem(
       {super.key,
+      required this.index,
       required this.name,
       required this.maker,
       required this.kcal,
@@ -185,6 +212,7 @@ class ApiListItem extends StatelessWidget {
       required this.sodium,
       required this.col});
 
+  final int index;
   final String name;
   final String maker;
   final String kcal;
@@ -205,10 +233,10 @@ class ApiListItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Radio(
-              value: kcal,
-              groupValue: cal.selectedCal,
+              value: index,
+              groupValue: cal.listNum,
               onChanged: kcal == '' ? null : (value) {
-                cal.setCalorie(kcal);  
+                cal.setCalorie(kcal, index);  
                 ElegantNotification.info(
                       title: const Text("정보"),
                       description: Text("선택된 음식의 열량: $kcal"))
@@ -239,6 +267,15 @@ class ApiListItem extends StatelessWidget {
                               fontSize: 18.0,
                               fontWeight: FontWeight.w600
                             ),
+                          ),
+                          Visibility(
+                            visible: maker != '' ? true : false,
+                            child: Text("제조사: $maker",
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w300
+                                )
+                            )
                           ),
                           Text("1회 제공량: $size g", 
                             style: const TextStyle(fontSize: 16.0)
@@ -359,4 +396,6 @@ class _DialogNutDetail extends StatelessWidget {
       )
     );
   }
+
+
 }
