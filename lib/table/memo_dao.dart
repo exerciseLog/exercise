@@ -14,15 +14,20 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
   }
 
   Future<MemoData> findByWriteTime(DateTime writeTime) async {
-    return (select(memo)..where((t) => t.writeTime.equals(writeTime))).getSingle();
+    return (select(memo)..where((t) => t.writeTime.equals(writeTime)))
+        .getSingle();
   }
 
   Future<List<MemoData>> findMonthByWriteTime(DateTime writeTime) {
-    var _startYear = DateFormat('yyyy').format(writeTime);
-    var _startMonth = DateFormat('MM').format(writeTime);
-    return (select(memo)..where((t) => t.writeTime.isBetween(
-        (DateTime.parse('$_startYear-$_startMonth-1') as Expression<DateTime>),(DateTime.parse('$_startYear-$_startMonth-31')as Expression<DateTime>)
-    ))).get();
+    var startYear = DateFormat('yyyy').format(writeTime);
+    var startMonth = DateFormat('MM').format(writeTime);
+    return (select(memo)
+          ..where((t) => t.writeTime.isBetween(
+              (DateTime.parse('$startYear-$startMonth-1')
+                  as Expression<DateTime>),
+              (DateTime.parse('$startYear-$startMonth-31')
+                  as Expression<DateTime>))))
+        .get();
   }
 
   Future<int> createMemo(MemoCompanion data) async {

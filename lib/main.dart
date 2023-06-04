@@ -2,7 +2,6 @@ import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/notifier/example_model.dart';
 import 'package:exercise_log/screens/home_screen.dart';
 import 'package:exercise_log/table/db_helper.dart';
-import 'package:exercise_log/table/memo_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
