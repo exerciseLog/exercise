@@ -23,17 +23,19 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
     var startMonth = DateFormat('MM').format(writeTime);
     var startDay = DateFormat('dd').format(writeTime);
     Future<MemoData?> memoData;
-      memoData =  (select(memo)
-        ..where((t) => t.writeTime.equals(
-            (DateTime.parse('$startYear-$startMonth-$startDay'))))..limit(1))
-          .getSingleOrNull();
+    memoData = (select(memo)
+          ..where((t) => t.writeTime.isBetweenValues(
+              (DateTime.parse('$startYear-$startMonth-$startDay')),
+              (DateTime.parse(
+                  '$startYear-$startMonth-${int.parse(startDay) + 1}'))))
+          ..limit(1))
+        .getSingleOrNull();
 
     return memoData;
   }
 
-  Future<int> createMemo(MemoCompanion data,DateTime writeTime) async {
-    deleteByWriteTime(writeTime);
-    return into(memo).insert(data);
+  Future<int> createMemo(MemoCompanion data) async {
+    return await into(memo).insert(data);
   }
 
   Future<int> updateModifyTime(int id, DateTime modifyTime) async {

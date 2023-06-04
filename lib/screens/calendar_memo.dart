@@ -44,9 +44,13 @@ class _CalendarMemoState extends State<CalendarMemo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text("ExerciseLog")),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            const SizedBox(
+              height: 40,
+            ),
             TableCalendar(
               firstDay: kFirstDay,
               lastDay: kLastDay,
@@ -97,8 +101,16 @@ class _CalendarMemoState extends State<CalendarMemo> {
     );
   }
 
-  void _memoSaved() {
-    MemoDao(GetIt.I<DbHelper>()).createMemo(MemoCompanion(writeTime: drift.Value(_selectedDay??DateTime.now()),memo: drift.Value(_memoController.text),modifyTime: drift.Value(DateTime.now()),),_selectedDay??DateTime.now());
+  Future<void> _memoSaved() async {
+    await MemoDao(GetIt.I<DbHelper>())
+        .deleteByWriteTime(_selectedDay ?? DateTime.now());
+    await MemoDao(GetIt.I<DbHelper>()).createMemo(
+      MemoCompanion(
+        writeTime: drift.Value(_selectedDay ?? DateTime.now()),
+        memo: drift.Value(_memoController.text),
+        modifyTime: drift.Value(DateTime.now()),
+      ),
+    );
     Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
   }
 
@@ -132,7 +144,8 @@ class _CalendarMemoState extends State<CalendarMemo> {
         _rangeSelectionMode = RangeSelectionMode.toggledOff;
         memoTextFocus.unfocus();
       });
-      var memo = await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(selectedDay);
+      var memo =
+          await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(selectedDay);
       if (memo == null) {
         setState(() {
           _memoController.text = '';

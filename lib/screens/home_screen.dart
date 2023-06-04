@@ -30,17 +30,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context, model, child) {
                     return Row(
                       children: [
-                        const SizedBox(
-                          height: 30,
-                        ),
-                        ElevatedButton(
-                            onPressed: () =>
-                                context.read<ExampleModel>().increaseCount(),
-                            child: const Text("provider")),
-                        const SizedBox(
-                          width: 30,
-                        ),
-                        Text("count: ${model.counter}"),
+                        // const SizedBox(
+                        //   height: 30,
+                        // ),
+                        // ElevatedButton(
+                        //     onPressed: () =>
+                        //         context.read<ExampleModel>().increaseCount(),
+                        //     child: const Text("provider")),
+                        // const SizedBox(
+                        //   width: 30,
+                        // ),
+                        // Text("count: ${model.counter}"),
                         const SizedBox(
                           height: 30,
                         ),
