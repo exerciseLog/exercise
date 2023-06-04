@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 
 class BmiScreen extends StatefulWidget {
   const BmiScreen({Key? key, required this.title}) : super(key: key);
@@ -19,30 +22,49 @@ class _BmiScreenState extends State<BmiScreen> {
   double _previousY = 0.0;
   double _weight = 0.0; // 체중 변수 추가
   double _height = 0.0; // 신장 변수 추가
+  late Database _database;
 
   @override
   void initState() {
     super.initState();
+    _openDatabase().then((database) {
+      _database = database;
+      _loadSteps();
+    });
     _listenToSensor();
-    _loadSteps(); // 이전에 저장된 걸음 수 불러오기
-    _resetStepsAtMidnight(); // 자정에 걸음 수 초기화
+    _resetStepsAtMidnight();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _loadSteps(); // 앱이 다시 실행될 때 저장된 걸음 수 불러오기
+      _loadSteps();
     }
+  }
+
+  Future<Database> _openDatabase() async {
+    final String path = await getDatabasesPath();
+    final String databasePath = join(path, 'step_data.db');
+
+    return await openDatabase(
+      databasePath,
+      version: 1,
+      onCreate: (db, version) {
+        return db.execute(
+          'CREATE TABLE IF NOT EXISTS steps(id INTEGER PRIMARY KEY AUTOINCREMENT, steps INTEGER, timestamp TEXT)',
+        );
+      },
+    );
   }
 
   void _listenToSensor() {
     _streamSubscription =
         accelerometerEvents.listen((AccelerometerEvent event) {
-      setState(() {
-        _lastEvent = event;
-        _calculateSteps();
-      });
-    });
+          setState(() {
+            _lastEvent = event;
+            _calculateSteps();
+          });
+        });
   }
 
   void _calculateSteps() {
@@ -67,15 +89,26 @@ class _BmiScreenState extends State<BmiScreen> {
   }
 
   void _loadSteps() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _steps = prefs.getInt('steps') ?? 0;
-    });
+    final List<Map<String, dynamic>> data = await _database.query(
+      'steps',
+      orderBy: 'id DESC',
+      limit: 1,
+    );
+    if (data.isNotEmpty) {
+      final int steps = data[0]['steps'];
+      setState(() {
+        _steps = steps;
+      });
+    }
   }
 
   void _saveSteps() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt('steps', _steps);
+    await _database.transaction((txn) async {
+      await txn.insert(
+        'steps',
+        {'steps': _steps, 'timestamp': DateTime.now().toIso8601String()},
+      );
+    });
   }
 
   double _calculateBMI() {
@@ -92,7 +125,8 @@ class _BmiScreenState extends State<BmiScreen> {
   void dispose() {
     super.dispose();
     _streamSubscription?.cancel();
-    _saveSteps(); // 앱이 종료될 때 걸음 수 저장
+    _saveSteps();
+    _database.close();
   }
 
   @override

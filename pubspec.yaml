@@ -51,6 +51,7 @@ dependencies:
   json_annotation: ^4.6.0
   get_it: ^7.6.0
   flutter_cupertino_datetime_picker: ^3.0.0
+  sqflite: ^2.0.0
 
 dev_dependencies:
   flutter_test:

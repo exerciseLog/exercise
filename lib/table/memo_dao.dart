@@ -18,25 +18,31 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
         .getSingle();
   }
 
-  Future<List<MemoData>> findMonthByWriteTime(DateTime writeTime) {
+  Future<MemoData?> findMonthByWriteTime(DateTime writeTime) {
     var startYear = DateFormat('yyyy').format(writeTime);
     var startMonth = DateFormat('MM').format(writeTime);
-    return (select(memo)
-          ..where((t) => t.writeTime.isBetween(
-              (DateTime.parse('$startYear-$startMonth-1')
-                  as Expression<DateTime>),
-              (DateTime.parse('$startYear-$startMonth-31')
-                  as Expression<DateTime>))))
-        .get();
+    var startDay = DateFormat('dd').format(writeTime);
+    Future<MemoData?> memoData;
+      memoData =  (select(memo)
+        ..where((t) => t.writeTime.equals(
+            (DateTime.parse('$startYear-$startMonth-$startDay'))))..limit(1))
+          .getSingleOrNull();
+
+    return memoData;
   }
 
-  Future<int> createMemo(MemoCompanion data) async {
+  Future<int> createMemo(MemoCompanion data,DateTime writeTime) async {
+    deleteByWriteTime(writeTime);
     return into(memo).insert(data);
   }
 
   Future<int> updateModifyTime(int id, DateTime modifyTime) async {
     return (update(memo)..where((t) => t.id.equals(id)))
         .write(MemoCompanion(modifyTime: Value(modifyTime)));
+  }
+
+  Future<int> deleteByWriteTime(DateTime writeTime) {
+    return (delete(memo)..where((tbl) => tbl.writeTime.equals(writeTime))).go();
   }
 
   Future<int> deleteAll() async {

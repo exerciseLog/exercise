@@ -18,6 +18,7 @@ class CalendarMemo extends StatefulWidget {
 class _CalendarMemoState extends State<CalendarMemo> {
   late final ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
+  FocusNode memoTextFocus = FocusNode();
   RangeSelectionMode _rangeSelectionMode = RangeSelectionMode
       .toggledOff; // Can be toggled on/off by longpressing a date
   DateTime _focusedDay = DateTime.now();
@@ -78,6 +79,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
               height: 30,
             ),
             TextField(
+              focusNode: memoTextFocus,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: '오늘의 운동',
@@ -96,7 +98,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
   }
 
   void _memoSaved() {
-    MemoDao(GetIt.I<DbHelper>()).createMemo(MemoCompanion(writeTime: drift.Value(_selectedDay??DateTime.now()),memo: drift.Value(_memoController.text),modifyTime: drift.Value(DateTime.now()),));
+    MemoDao(GetIt.I<DbHelper>()).createMemo(MemoCompanion(writeTime: drift.Value(_selectedDay??DateTime.now()),memo: drift.Value(_memoController.text),modifyTime: drift.Value(DateTime.now()),),_selectedDay??DateTime.now());
     Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
   }
 
@@ -120,7 +122,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
     ];
   }
 
-  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+  Future<void> _onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
         _selectedDay = selectedDay;
@@ -128,7 +130,19 @@ class _CalendarMemoState extends State<CalendarMemo> {
         _rangeStart = null; // Important to clean those
         _rangeEnd = null;
         _rangeSelectionMode = RangeSelectionMode.toggledOff;
+        memoTextFocus.unfocus();
       });
+      var memo = await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(selectedDay);
+      if (memo == null) {
+        setState(() {
+          _memoController.text = '';
+        });
+        Fluttertoast.showToast(msg: '해당 날짜에 저장된 기록이 없습니다.');
+      } else {
+        setState(() {
+          _memoController.text = memo.memo;
+        });
+      }
 
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
