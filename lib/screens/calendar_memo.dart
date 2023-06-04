@@ -1,6 +1,10 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:exercise_log/screens/utils.dart';
+import 'package:exercise_log/table/db_helper.dart';
+import 'package:exercise_log/table/memo_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get_it/get_it.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -92,6 +96,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
   }
 
   void _memoSaved() {
+    MemoDao(GetIt.I<DbHelper>()).createMemo(MemoCompanion(writeTime: drift.Value(_selectedDay??DateTime.now()),memo: drift.Value(_memoController.text),modifyTime: drift.Value(DateTime.now()),));
     Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
   }
 
