@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:drift/drift.dart' as drift;
 import 'package:exercise_log/screens/utils.dart';
 import 'package:exercise_log/table/db_helper.dart';
@@ -17,6 +19,7 @@ class CalendarMemo extends StatefulWidget {
 
 class _CalendarMemoState extends State<CalendarMemo> {
   late final ValueNotifier<List<Event>> _selectedEvents;
+  Map<DateTime, MemoData> monthMemo = {};
   CalendarFormat _calendarFormat = CalendarFormat.month;
   FocusNode memoTextFocus = FocusNode();
   RangeSelectionMode _rangeSelectionMode = RangeSelectionMode
@@ -33,6 +36,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
     super.initState();
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
+    getMonthMemo();
   }
 
   @override
@@ -60,7 +64,9 @@ class _CalendarMemoState extends State<CalendarMemo> {
               rangeEndDay: _rangeEnd,
               calendarFormat: _calendarFormat,
               rangeSelectionMode: _rangeSelectionMode,
-              eventLoader: _getEventsForDay,
+              eventLoader: (day) {
+                return [monthMemo[day]?.id];
+              },
               startingDayOfWeek: StartingDayOfWeek.monday,
               calendarStyle: const CalendarStyle(
                 // Use `CalendarStyle` to customize the UI
@@ -134,6 +140,14 @@ class _CalendarMemoState extends State<CalendarMemo> {
     ];
   }
 
+  Future<void> getMonthMemo() async {
+    var memoList =
+        await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(DateTime.now());
+    setState(() {
+      monthMemo = {for (var memo in memoList) memo.writeTime: memo};
+    });
+  }
+
   Future<void> _onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
@@ -145,7 +159,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
         memoTextFocus.unfocus();
       });
       var memo =
-          await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(selectedDay);
+          await MemoDao(GetIt.I<DbHelper>()).findByWriteTime(selectedDay);
       if (memo == null) {
         setState(() {
           _memoController.text = '';
