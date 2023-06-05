@@ -6,6 +6,7 @@ import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
+
 class BmiScreen extends StatefulWidget {
   const BmiScreen({Key? key, required this.title}) : super(key: key);
   final String title;
@@ -32,7 +33,6 @@ class _BmiScreenState extends State<BmiScreen> {
       _loadSteps();
     });
     _listenToSensor();
-    _resetStepsAtMidnight();
   }
 
   @override
@@ -68,6 +68,7 @@ class _BmiScreenState extends State<BmiScreen> {
   }
 
   void _calculateSteps() {
+    //걸음수 계산
     double y = _lastEvent?.y ?? 0.0;
     if ((_previousY < 0 && y > 0) || (_previousY > 0 && y < 0)) {
       setState(() {
@@ -77,16 +78,6 @@ class _BmiScreenState extends State<BmiScreen> {
     _previousY = y;
   }
 
-  void _resetStepsAtMidnight() {
-    Timer.periodic(const Duration(days: 1), (timer) {
-      DateTime now = DateTime.now();
-      if (now.hour == 0 && now.minute == 0 && now.second == 0) {
-        setState(() {
-          _steps = 0;
-        });
-      }
-    });
-  }
 
   void _loadSteps() async {
     final List<Map<String, dynamic>> data = await _database.query(
@@ -103,6 +94,7 @@ class _BmiScreenState extends State<BmiScreen> {
   }
 
   void _saveSteps() async {
+    //걸음수 와 현재 시각 저장
     await _database.transaction((txn) async {
       await txn.insert(
         'steps',
@@ -112,7 +104,7 @@ class _BmiScreenState extends State<BmiScreen> {
   }
 
   double _calculateBMI() {
-    // BMI 지수 계산
+    // BMI 지수 계산  18.5~23사이는 정상 23~25과체중 25이상 비만 18.5 저체중
     if (_height > 0.0) {
       double heightInMeters = _height / 100;
       return _weight / (heightInMeters * heightInMeters);
@@ -180,6 +172,12 @@ class _BmiScreenState extends State<BmiScreen> {
                   Text(
                     '$_steps', // 현재 걸음 수
                     style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      _saveSteps();
+                    },
+                    child: Text('걸음 수 저장'), // 걸음 수 저장 버튼
                   ),
                 ],
               ),
