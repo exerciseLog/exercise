@@ -1,12 +1,16 @@
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calorie_provider.dart';
+import 'package:exercise_log/table/db_helper.dart';
+import 'package:exercise_log/table/memo_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../api_service.dart';
 import '../model/nutrition_model.dart';
 import 'package:flutter_cupertino_datetime_picker/flutter_cupertino_datetime_picker.dart';
+import 'package:get_it/get_it.dart';
+import 'package:drift/drift.dart' as drift;
 
 class NutApiPage extends StatefulWidget {
   const NutApiPage({Key? key}) : super(key: key);
@@ -140,7 +144,7 @@ class _NutApiPageState extends State<NutApiPage> {
                               .show(context);
                       }
                       else {
-                        cal.addCalorie(selectedCal);
+                        cal.addCalorie(cal.selectedFood, selectedCal);
                         ElegantNotification.success(
                           title: const Text("성공"),
                           description: Text(
@@ -170,14 +174,31 @@ class _NutApiPageState extends State<NutApiPage> {
                         maxDateTime: DateTime(2100),
                         onMonthChangeStartWithFirstDate: false,
                         locale: DateTimePickerLocale.ko,
-                        onConfirm: (dateTime, List<int> index) {
+                        onConfirm: (dateTime, List<int> index) async {
                           DateTime selDate = dateTime;
                           var res = DateFormat('yyyy-MM-dd').format(selDate);
-                          ElegantNotification.success(
+                          var foodList = cal.selectedFoodList;
+                          String memoValue = '';
+                          for (var food in foodList) {
+                            memoValue += "$food, ";
+                          } 
+                          memoValue += "\n$numCal kcal";                    
+                          await MemoDao(GetIt.I<DbHelper>())
+                            .deleteByWriteTime(selDate);
+                          await MemoDao(GetIt.I<DbHelper>()).createMemo(
+                            MemoCompanion(
+                              writeTime: drift.Value(selDate),
+                              memo: drift.Value(memoValue),
+                              modifyTime: drift.Value(DateTime.now()),
+                            ),
+                          );
+                          if (context.mounted) {
+                            ElegantNotification.success(
                             title: const Text("성공"),
                             description: Text("$res에 추가된 칼로리: $numCal"))
                             .show(context);
-                          cal.resetCalorie();
+                            cal.resetCalorie();
+                          }
                         }
                       );
                      
@@ -186,9 +207,35 @@ class _NutApiPageState extends State<NutApiPage> {
                 child: const Text("등록")
                 ),
               ]
+            ), 
+            SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(
+                children: [
+                  Container(
+                    alignment: Alignment.topLeft,
+                    height: 120,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(6),
+                      itemCount: cal.selectedCalList.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return _CheckedListItem(
+                          food: cal.selectedFoodList[index],
+                          cal: cal.selectedCalList[index],
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text("총 열량: $numCal kcal",
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontStyle: FontStyle.italic,
+                fontSize: 18.0),
             ),
 
-            Text("현재 입력된 열량: $numCal")
           ],
         ),
       ),
@@ -236,7 +283,7 @@ class ApiListItem extends StatelessWidget {
               value: index,
               groupValue: cal.listNum,
               onChanged: kcal == '' ? null : (value) {
-                cal.setCalorie(kcal, index);  
+                cal.setCalorie(name, kcal, index);  
                 ElegantNotification.info(
                       title: const Text("정보"),
                       description: Text("선택된 음식의 열량: $kcal"))
@@ -396,6 +443,29 @@ class _DialogNutDetail extends StatelessWidget {
       )
     );
   }
+}
 
+class _CheckedListItem extends StatelessWidget {
+  const _CheckedListItem({
+    required this.food,
+    required this.cal
+  });
 
+  final String food;
+  final String cal;
+
+  @override
+  Widget build(BuildContext context) {
+     return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("$food : $cal kcal",
+            style: const TextStyle(fontSize: 15.0),
+          ),
+        ]
+      ),
+    );
+  }
 }
