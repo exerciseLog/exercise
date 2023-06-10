@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:drift/drift.dart' as drift;
+import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/screens/utils.dart';
 import 'package:exercise_log/table/db_helper.dart';
 import 'package:exercise_log/table/memo_dao.dart';
@@ -37,7 +38,10 @@ class _CalendarMemoState extends State<CalendarMemo> {
     super.initState();
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
-    getMonthMemo();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      getMonthMemo(context);
+    });
   }
 
   @override
@@ -56,38 +60,39 @@ class _CalendarMemoState extends State<CalendarMemo> {
             const SizedBox(
               height: 40,
             ),
-            Consumer(
-              builder: (BuildContext context, value, Widget? child) {
-                return TableCalendar(
-                  firstDay: kFirstDay,
-                  lastDay: kLastDay,
-                  focusedDay: _focusedDay,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  rangeStartDay: _rangeStart,
-                  rangeEndDay: _rangeEnd,
-                  calendarFormat: _calendarFormat,
-                  rangeSelectionMode: _rangeSelectionMode,
-                  eventLoader: (day) {
-                    return monthMemo[day] == null ? [] : [1];
-                  },
-                  startingDayOfWeek: StartingDayOfWeek.monday,
-                  calendarStyle: const CalendarStyle(
-                    // Use `CalendarStyle` to customize the UI
-                    outsideDaysVisible: false,
-                  ),
-                  onDaySelected: _onDaySelected,
-                  onRangeSelected: _onRangeSelected,
-                  onFormatChanged: (format) {
-                    if (_calendarFormat != format) {
-                      setState(() {
-                        _calendarFormat = format;
-                      });
-                    }
-                  },
-                  onPageChanged: (focusedDay) {
-                    _focusedDay = focusedDay;
-                  },
-                );
+            TableCalendar(
+              firstDay: kFirstDay,
+              lastDay: kLastDay,
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              rangeStartDay: _rangeStart,
+              rangeEndDay: _rangeEnd,
+              calendarFormat: _calendarFormat,
+              rangeSelectionMode: _rangeSelectionMode,
+              eventLoader: (day) {
+                return Provider.of<CalendarProvider>(context)
+                        .memoHistory
+                        .contains(
+                            DateTime.parse(day.toString().split(' ').first))
+                    ? [1]
+                    : [];
+              },
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              calendarStyle: const CalendarStyle(
+                // Use `CalendarStyle` to customize the UI
+                outsideDaysVisible: false,
+              ),
+              onDaySelected: _onDaySelected,
+              onRangeSelected: _onRangeSelected,
+              onFormatChanged: (format) {
+                if (_calendarFormat != format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                }
+              },
+              onPageChanged: (focusedDay) {
+                _focusedDay = focusedDay;
               },
             ),
             const SizedBox(
@@ -145,12 +150,12 @@ class _CalendarMemoState extends State<CalendarMemo> {
     ];
   }
 
-  Future<void> getMonthMemo() async {
+  Future<void> getMonthMemo(BuildContext context) async {
     var memoList =
         await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(DateTime.now());
-    setState(() {
-      monthMemo = {for (var memo in memoList) memo.writeTime: memo};
-    });
+    monthMemo = {for (var memo in memoList) memo.writeTime: memo};
+    Provider.of<CalendarProvider>(context, listen: false)
+        .setMonthMemo(monthMemo);
   }
 
   Future<void> _onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
