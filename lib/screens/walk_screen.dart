@@ -21,6 +21,7 @@ class _BmiScreenState extends State<BmiScreen> {
   double _previousY = 0.0;
   double _weight = 0.0; // 체중 변수 추가
   double _height = 0.0; // 신장 변수 추가
+  double _targetWeight = 0.0; // 감량해야 할 체중 변수 추가
   late Database _database;
 
   @override
@@ -78,7 +79,6 @@ class _BmiScreenState extends State<BmiScreen> {
     _previousY = y;
   }
 
-
   void _loadSteps() async {
     final List<Map<String, dynamic>> data = await _database.query(
       'steps',
@@ -131,6 +131,24 @@ class _BmiScreenState extends State<BmiScreen> {
         return '과체중';
       } else {
         return '비만';
+      }
+    } else {
+      return '';
+    }
+  }
+
+  String _calculateTargetWeight() {
+    // 비만 또는 과체중일 경우 감량해야 할 체중 계산
+    if (_height > 0.0) {
+      double heightInMeters = _height / 100;
+      double bmi = _weight / (heightInMeters * heightInMeters);
+
+      if (bmi >= 23.0) {
+        double normalWeight = 23.0 * heightInMeters * heightInMeters;
+        double targetWeight = _weight - normalWeight;
+        return targetWeight.toStringAsFixed(1) + 'kg';
+      } else {
+        return '';
       }
     } else {
       return '';
@@ -213,6 +231,18 @@ class _BmiScreenState extends State<BmiScreen> {
                   ),
                   Text(
                     _calculateBMI(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Text(
+                    '감량해야 할 체중:', // 감량해야 할 체중 텍스트
+                  ),
+                  Text(
+                    _calculateTargetWeight(),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
