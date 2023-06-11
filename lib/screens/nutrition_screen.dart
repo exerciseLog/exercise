@@ -1,12 +1,18 @@
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calorie_provider.dart';
+import 'package:exercise_log/table/db_helper.dart';
+import 'package:exercise_log/table/memo_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../api_service.dart';
 import '../model/nutrition_model.dart';
 import 'package:flutter_cupertino_datetime_picker/flutter_cupertino_datetime_picker.dart';
+import 'package:get_it/get_it.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import '../provider/bmi_provider.dart';
 
 class NutApiPage extends StatefulWidget {
   const NutApiPage({Key? key}) : super(key: key);
@@ -16,15 +22,21 @@ class NutApiPage extends StatefulWidget {
 }
 
 class _NutApiPageState extends State<NutApiPage> {
+  static const _pageSize = 10;
+  final PagingController<int, NutApiModel> _pagingController = 
+    PagingController(firstPageKey: 0);
   TextEditingController apiCtrl = TextEditingController();
   TextEditingController dlgCtrl = TextEditingController();
-  
+ 
   @override
   Widget build(BuildContext context) {
     var api = Provider.of<ApiProvider>(context);
     var cal = Provider.of<CalorieProvider>(context);
+    var bmi = Provider.of<BmiProvider>(context);
     var selectedCal = cal.selectedCal;
     var numCal = cal.getCalorie;
+    var stdCal = bmi.getStandardCalorie();
+    var percent = cal.percent;
     
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -63,17 +75,26 @@ class _NutApiPageState extends State<NutApiPage> {
                           }
                                                    
                         try {
-                          Future<List<NutApiModel>> resultList =
-                            ApiService.getNutrition(foodName);
-                          List<NutApiModel> list = await resultList;
-                          api.setResult(list);
+                          /* _pagingController.addPageRequestListener((pageKey) async {
+                            final newItems = await ApiService.getNutrition(foodName);
+                            api.setResult(newItems);
+                            final isLastPage = newItems.length < _pageSize;
+                            if(isLastPage) {
+                              _pagingController.appendLastPage(newItems);
+                            } else {
+                              final nextPageKey = pageKey + newItems.length;
+                              _pagingController.appendPage(newItems, nextPageKey);
+                            }
+                          }); */
+                          List<NutApiModel> resultList = await ApiService.getNutrition(foodName);
+                          api.setResult(resultList);                        
                           apiCtrl.clear();
                           cal.resetList();
                         }
                         catch(err) {
                           ElegantNotification.error(
-                                  title: const Text("오류"),
-                                  description: Text('$err'))
+                              title: const Text("오류"),
+                              description: Text('$err'))
                               .show(context);
                         }
                         finally {
@@ -102,7 +123,26 @@ class _NutApiPageState extends State<NutApiPage> {
                   Container(
                     alignment: Alignment.topLeft,
                     height: 300,
-                    child: ListView.separated(
+                    child: /* PagedListView<int, NutApiModel> (
+                      pagingController: _pagingController,
+                      builderDelegate: PagedChildBuilderDelegate<NutApiModel>(
+                        itemBuilder: (context, item, index) {
+                          return ApiListItem(
+                            index: index,
+                            name: api.inList[index].name,
+                            maker: api.inList[index].maker,
+                            kcal: api.inList[index].kcal,
+                            size: api.inList[index].size,
+                            carb: api.inList[index].carb,
+                            protien: api.inList[index].protien,
+                            fat: api.inList[index].fat,
+                            sugar: api.inList[index].sugar,
+                            sodium: api.inList[index].sodium,
+                            col: api.inList[index].col
+                          );
+                        },
+                      ), */
+                    ListView.separated(
                       padding: const EdgeInsets.all(6),
                       itemCount: api.getLength(),
                       itemBuilder: (BuildContext context, int index) {
@@ -121,7 +161,7 @@ class _NutApiPageState extends State<NutApiPage> {
                       },
                       separatorBuilder: (BuildContext context, int index) =>
                           const Divider(),
-                    ),
+                    ), 
                   ),
                 ],
               ),
@@ -140,7 +180,7 @@ class _NutApiPageState extends State<NutApiPage> {
                               .show(context);
                       }
                       else {
-                        cal.addCalorie(selectedCal);
+                        cal.addCalorie(cal.selectedFood, selectedCal, stdCal);
                         ElegantNotification.success(
                           title: const Text("성공"),
                           description: Text(
@@ -170,14 +210,31 @@ class _NutApiPageState extends State<NutApiPage> {
                         maxDateTime: DateTime(2100),
                         onMonthChangeStartWithFirstDate: false,
                         locale: DateTimePickerLocale.ko,
-                        onConfirm: (dateTime, List<int> index) {
+                        onConfirm: (dateTime, List<int> index) async {
                           DateTime selDate = dateTime;
                           var res = DateFormat('yyyy-MM-dd').format(selDate);
-                          ElegantNotification.success(
+                          var foodList = cal.selectedFoodList;
+                          String memoValue = '';
+                          for (var food in foodList) {
+                            memoValue += "$food, ";
+                          } 
+                          memoValue += "\n$numCal kcal";                    
+                          await MemoDao(GetIt.I<DbHelper>())
+                            .deleteByWriteTime(selDate);
+                          await MemoDao(GetIt.I<DbHelper>()).createMemo(
+                            MemoCompanion(
+                              writeTime: drift.Value(selDate),
+                              memo: drift.Value(memoValue),
+                              modifyTime: drift.Value(DateTime.now()),
+                            ),
+                          );
+                          if (context.mounted) {
+                            ElegantNotification.success(
                             title: const Text("성공"),
                             description: Text("$res에 추가된 칼로리: $numCal"))
                             .show(context);
-                          cal.resetCalorie();
+                            cal.resetCalorie();
+                          }
                         }
                       );
                      
@@ -186,15 +243,52 @@ class _NutApiPageState extends State<NutApiPage> {
                 child: const Text("등록")
                 ),
               ]
+            ), 
+            SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(
+                children: [
+                  Container(
+                    alignment: Alignment.topLeft,
+                    height: 120,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(6),
+                      itemCount: cal.selectedCalList.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return _CheckedListItem(
+                          food: cal.selectedFoodList[index],
+                          cal: cal.selectedCalList[index],
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Tooltip(
+              message: '회원님의 현재 적정 열량은 $stdCal kcal 입니다.',
+              child: Text("총 열량: $numCal kcal($percent%)",
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 18.0
+                ),
+              )
             ),
 
-            Text("현재 입력된 열량: $numCal")
           ],
         ),
       ),
     );
   }
-  
+
+  @override
+  void dispose() {
+    _pagingController.dispose();
+    super.dispose();
+  }
+
+
 }
 
 class ApiListItem extends StatelessWidget {
@@ -236,7 +330,7 @@ class ApiListItem extends StatelessWidget {
               value: index,
               groupValue: cal.listNum,
               onChanged: kcal == '' ? null : (value) {
-                cal.setCalorie(kcal, index);  
+                cal.setCalorie(name, kcal, index);  
                 ElegantNotification.info(
                       title: const Text("정보"),
                       description: Text("선택된 음식의 열량: $kcal"))
@@ -396,6 +490,29 @@ class _DialogNutDetail extends StatelessWidget {
       )
     );
   }
+}
 
+class _CheckedListItem extends StatelessWidget {
+  const _CheckedListItem({
+    required this.food,
+    required this.cal
+  });
 
+  final String food;
+  final String cal;
+
+  @override
+  Widget build(BuildContext context) {
+     return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("$food : $cal kcal",
+            style: const TextStyle(fontSize: 15.0),
+          ),
+        ]
+      ),
+    );
+  }
 }

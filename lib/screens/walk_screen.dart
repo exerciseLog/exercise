@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:exercise_log/provider/bmi_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 
 class BmiScreen extends StatefulWidget {
@@ -125,13 +126,15 @@ class _BmiScreenState extends State<BmiScreen> {
   void dispose() {
     super.dispose();
     _streamSubscription?.cancel();
-    _saveSteps();
+    // _saveSteps();
     _database.close();
   }
 
   @override
   Widget build(BuildContext context) {
+    var bmiProvider = Provider.of<BmiProvider>(context);
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(widget.title), // 상단 앱바에 제목 표시
       ),
@@ -161,6 +164,7 @@ class _BmiScreenState extends State<BmiScreen> {
                   ),
                   TextField(
                     onChanged: (value) {
+                      bmiProvider.setHeight(value);
                       setState(() {
                         _height = double.tryParse(value) ?? 0.0;
                       });
