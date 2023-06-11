@@ -70,10 +70,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
               calendarFormat: _calendarFormat,
               rangeSelectionMode: _rangeSelectionMode,
               eventLoader: (day) {
-                return calendarProvider.memoHistory.contains(
-                        DateTime.parse(day.toString().split(' ').first))
-                    ? [1]
-                    : [];
+                return isExerciseDay(day) ? [1] : [];
               },
               startingDayOfWeek: StartingDayOfWeek.monday,
               calendarStyle: const CalendarStyle(
@@ -106,7 +103,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
               controller: _memoController,
             ),
             OutlinedButton(
-              onPressed: _memoSaved,
+              onPressed: () => _memoSaved(context),
               child: const Text('저장'),
             ),
           ],
@@ -115,16 +112,20 @@ class _CalendarMemoState extends State<CalendarMemo> {
     );
   }
 
-  Future<void> _memoSaved() async {
-    await MemoDao(GetIt.I<DbHelper>())
-        .deleteByWriteTime(_selectedDay ?? DateTime.now());
-    await MemoDao(GetIt.I<DbHelper>()).createMemo(
-      MemoCompanion(
-        writeTime: drift.Value(_selectedDay ?? DateTime.now()),
-        memo: drift.Value(_memoController.text),
-        modifyTime: drift.Value(DateTime.now()),
-      ),
-    );
+  bool isExerciseDay(DateTime day) {
+    var isExercise = false;
+    context.read<CalendarProvider>().memoHistory.forEach((element) {
+      if (element.compareTo(day) == 0) {
+        isExercise = true;
+      }
+    });
+    return isExercise;
+  }
+
+  void _memoSaved(BuildContext context) {
+    context
+        .read<CalendarProvider>()
+        .addMemo(_selectedDay ?? DateTime.now(), _memoController.text);
     Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
   }
 
