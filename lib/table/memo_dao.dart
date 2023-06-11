@@ -13,23 +13,22 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
     return (select(memo)..where((t) => t.id.equals(id))).getSingle();
   }
 
-  Future<MemoData> findByWriteTime(DateTime writeTime) async {
-    return (select(memo)..where((t) => t.writeTime.equals(writeTime)))
-        .getSingle();
-  }
-
-  Future<MemoData?> findMonthByWriteTime(DateTime writeTime) {
-    var startYear = DateFormat('yyyy').format(writeTime);
-    var startMonth = DateFormat('MM').format(writeTime);
-    var startDay = DateFormat('dd').format(writeTime);
-    Future<MemoData?> memoData;
-    memoData = (select(memo)
-          ..where((t) => t.writeTime.isBetweenValues(
-              (DateTime.parse('$startYear-$startMonth-$startDay')),
-              (DateTime.parse(
-                  '$startYear-$startMonth-${int.parse(startDay) + 1}'))))
+  Future<MemoData?> findByWriteTime(DateTime writeTime) async {
+    return (select(memo)
+          ..where((t) => t.writeTime.equals(writeTime))
           ..limit(1))
         .getSingleOrNull();
+  }
+
+  Future<List<MemoData>> findMonthByWriteTime(DateTime writeTime) {
+    var startYear = DateFormat('yyyy').format(writeTime);
+    var startMonth = DateFormat('MM').format(writeTime);
+    Future<List<MemoData>> memoData;
+    memoData = (select(memo)
+          ..where((t) => t.writeTime.isBetweenValues(
+              (DateTime.parse('$startYear-$startMonth-01')),
+              (DateTime.parse('$startYear-$startMonth-31')))))
+        .get();
 
     return memoData;
   }

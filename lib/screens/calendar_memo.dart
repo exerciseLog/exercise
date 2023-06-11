@@ -1,10 +1,14 @@
+import 'dart:collection';
+
 import 'package:drift/drift.dart' as drift;
+import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/screens/utils.dart';
 import 'package:exercise_log/table/db_helper.dart';
 import 'package:exercise_log/table/memo_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -33,6 +37,10 @@ class _CalendarMemoState extends State<CalendarMemo> {
     super.initState();
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CalendarProvider>().getMemoHistory();
+    });
   }
 
   @override
@@ -43,6 +51,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   @override
   Widget build(BuildContext context) {
+    final calendarProvider = context.watch<CalendarProvider>();
     return Scaffold(
       appBar: AppBar(title: const Text("ExerciseLog")),
       body: SingleChildScrollView(
@@ -60,7 +69,9 @@ class _CalendarMemoState extends State<CalendarMemo> {
               rangeEndDay: _rangeEnd,
               calendarFormat: _calendarFormat,
               rangeSelectionMode: _rangeSelectionMode,
-              eventLoader: _getEventsForDay,
+              eventLoader: (day) {
+                return isExerciseDay(day) ? [1] : [];
+              },
               startingDayOfWeek: StartingDayOfWeek.monday,
               calendarStyle: const CalendarStyle(
                 // Use `CalendarStyle` to customize the UI
@@ -92,7 +103,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
               controller: _memoController,
             ),
             OutlinedButton(
-              onPressed: _memoSaved,
+              onPressed: () => _memoSaved(context),
               child: const Text('저장'),
             ),
           ],
@@ -101,16 +112,20 @@ class _CalendarMemoState extends State<CalendarMemo> {
     );
   }
 
-  Future<void> _memoSaved() async {
-    await MemoDao(GetIt.I<DbHelper>())
-        .deleteByWriteTime(_selectedDay ?? DateTime.now());
-    await MemoDao(GetIt.I<DbHelper>()).createMemo(
-      MemoCompanion(
-        writeTime: drift.Value(_selectedDay ?? DateTime.now()),
-        memo: drift.Value(_memoController.text),
-        modifyTime: drift.Value(DateTime.now()),
-      ),
-    );
+  bool isExerciseDay(DateTime day) {
+    var isExercise = false;
+    context.read<CalendarProvider>().memoHistory.forEach((element) {
+      if (element.compareTo(day) == 0) {
+        isExercise = true;
+      }
+    });
+    return isExercise;
+  }
+
+  void _memoSaved(BuildContext context) {
+    context
+        .read<CalendarProvider>()
+        .addMemo(_selectedDay ?? DateTime.now(), _memoController.text);
     Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
   }
 
@@ -134,6 +149,14 @@ class _CalendarMemoState extends State<CalendarMemo> {
     ];
   }
 
+  // Future<void> getMonthMemo(BuildContext context) async {
+  //   var memoList =
+  //       await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(DateTime.now());
+  //   monthMemo = {for (var memo in memoList) memo.writeTime: memo};
+  //   Provider.of<CalendarProvider>(context, listen: false)
+  //       .setMonthMemo(monthMemo);
+  // }
+
   Future<void> _onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
@@ -145,7 +168,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
         memoTextFocus.unfocus();
       });
       var memo =
-          await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(selectedDay);
+          await MemoDao(GetIt.I<DbHelper>()).findByWriteTime(selectedDay);
       if (memo == null) {
         setState(() {
           _memoController.text = '';
