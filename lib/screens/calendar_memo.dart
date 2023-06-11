@@ -21,7 +21,6 @@ class CalendarMemo extends StatefulWidget {
 
 class _CalendarMemoState extends State<CalendarMemo> {
   late final ValueNotifier<List<Event>> _selectedEvents;
-  Map<DateTime, MemoData> monthMemo = {};
   CalendarFormat _calendarFormat = CalendarFormat.month;
   FocusNode memoTextFocus = FocusNode();
   RangeSelectionMode _rangeSelectionMode = RangeSelectionMode
@@ -40,7 +39,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      getMonthMemo(context);
+      context.read<CalendarProvider>().getMemoHistory();
     });
   }
 
@@ -52,6 +51,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   @override
   Widget build(BuildContext context) {
+    final calendarProvider = context.watch<CalendarProvider>();
     return Scaffold(
       appBar: AppBar(title: const Text("ExerciseLog")),
       body: SingleChildScrollView(
@@ -70,10 +70,8 @@ class _CalendarMemoState extends State<CalendarMemo> {
               calendarFormat: _calendarFormat,
               rangeSelectionMode: _rangeSelectionMode,
               eventLoader: (day) {
-                return Provider.of<CalendarProvider>(context)
-                        .memoHistory
-                        .contains(
-                            DateTime.parse(day.toString().split(' ').first))
+                return calendarProvider.memoHistory.contains(
+                        DateTime.parse(day.toString().split(' ').first))
                     ? [1]
                     : [];
               },
@@ -150,13 +148,13 @@ class _CalendarMemoState extends State<CalendarMemo> {
     ];
   }
 
-  Future<void> getMonthMemo(BuildContext context) async {
-    var memoList =
-        await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(DateTime.now());
-    monthMemo = {for (var memo in memoList) memo.writeTime: memo};
-    Provider.of<CalendarProvider>(context, listen: false)
-        .setMonthMemo(monthMemo);
-  }
+  // Future<void> getMonthMemo(BuildContext context) async {
+  //   var memoList =
+  //       await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(DateTime.now());
+  //   monthMemo = {for (var memo in memoList) memo.writeTime: memo};
+  //   Provider.of<CalendarProvider>(context, listen: false)
+  //       .setMonthMemo(monthMemo);
+  // }
 
   Future<void> _onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
     if (!isSameDay(_selectedDay, selectedDay)) {
