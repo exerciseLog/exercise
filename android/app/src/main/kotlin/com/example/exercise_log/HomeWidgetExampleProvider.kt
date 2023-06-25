@@ -8,6 +8,8 @@ import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
+import android.os.Bundle
+
 
 class HomeWidgetExampleProvider : HomeWidgetProvider() {
 
@@ -42,4 +44,5 @@ class HomeWidgetExampleProvider : HomeWidgetProvider() {
             appWidgetManager.updateAppWidget(widgetId, views)
         }
     }
+
 }

@@ -7,6 +7,7 @@
     android:layout_margin="0dp"
     android:orientation="vertical"
     android:padding="0dp"
+    android:background="@drawable/widget_background"
     android:id="@+id/widget_container">
 
     <TextView
@@ -19,7 +20,7 @@
         android:layout_height = "fill_parent"
         android:textColor="#ffffff"
 
-        android:background="@drawable/widget_background"
+
         tools:text="Title" />
 
     <TextView

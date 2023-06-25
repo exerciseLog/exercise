@@ -41,7 +41,8 @@ void callbackDispatcher() {
 /// Called when Doing Background Work initiated from Widget
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? data) async {
-  if (data?.host == 'titleClicked') {
+  if (data?.host == 'titleclicked') {
+    print('widget click');
     final greetings = [
       'Hello',
       'Hallo',
@@ -64,7 +65,6 @@ void main() {
   final database = DbHelper();
   GetIt.I.registerSingleton<DbHelper>(database);
   WidgetsFlutterBinding.ensureInitialized();
-  HomeWidget.registerBackgroundCallback(backgroundCallback);
   Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
   runApp(ChangeNotifierProvider(
     create: (_) => ExampleModel(),
@@ -85,12 +85,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    HomeWidget.widgetClicked.listen((Uri? uri) => loadData());
-  }
-
-  void loadData() async {
-    await Future.delayed(Duration(seconds: 1));
-    print('test');
+    HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 
   @override
