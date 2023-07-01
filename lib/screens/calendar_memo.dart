@@ -1,6 +1,3 @@
-import 'dart:collection';
-
-import 'package:drift/drift.dart' as drift;
 import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/screens/utils.dart';
 import 'package:exercise_log/table/db_helper.dart';
