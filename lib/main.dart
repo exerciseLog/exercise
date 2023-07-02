@@ -1,5 +1,3 @@
-import 'dart:html';
-import 'dart:math';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/notifier/example_model.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
@@ -7,26 +5,31 @@ import 'package:exercise_log/provider/bmi_provider.dart';
 import 'package:exercise_log/provider/calorie_provider.dart';
 import 'package:exercise_log/screens/home_screen.dart';
 import 'package:exercise_log/table/db_helper.dart';
+import 'package:exercise_log/table/memo_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:drift/drift.dart' as drift;
 
 /// Called when Doing Background Work initiated from Widget
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? data) async {
   if (data?.host == 'titleclicked') {
     print('widget click');
-
-    var test = context
-        .read<CalendarProvider>()
-        .addMemo(_selectedDay ?? DateTime.now(), _memoController.text);
+    var memoCompanion = MemoCompanion(
+      writeTime: drift.Value(DateTime.now()),
+      memo: const drift.Value(''),
+      modifyTime: drift.Value(DateTime.now()),
+    );
+    final database = DbHelper();
+    await MemoDao(database).createMemo(
+      memoCompanion,
+    );
   }
 }
 
 void main() {
-  final database = DbHelper();
-  GetIt.I.registerSingleton<DbHelper>(database);
   WidgetsFlutterBinding.ensureInitialized();
   runApp(ChangeNotifierProvider(
     create: (_) => ExampleModel(),
@@ -47,6 +50,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    final database = DbHelper();
+    GetIt.I.registerSingleton<DbHelper>(database);
     HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 

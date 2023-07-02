@@ -71,9 +71,12 @@ class _CalendarMemoState extends State<CalendarMemo> {
               },
               startingDayOfWeek: StartingDayOfWeek.monday,
               calendarStyle: const CalendarStyle(
-                // Use `CalendarStyle` to customize the UI
-                outsideDaysVisible: false,
-              ),
+                  // Use `CalendarStyle` to customize the UI
+                  outsideDaysVisible: false,
+                  markerDecoration: BoxDecoration(
+                    color: Color(0xffF67098),
+                    shape: BoxShape.circle,
+                  )),
               onDaySelected: _onDaySelected,
               onRangeSelected: _onRangeSelected,
               onFormatChanged: (format) {
@@ -110,9 +113,10 @@ class _CalendarMemoState extends State<CalendarMemo> {
   }
 
   bool isExerciseDay(DateTime day) {
+    //todo :: 전부 검사 하는 로직 수정 필요
     var isExercise = false;
     context.read<CalendarProvider>().memoHistory.forEach((element) {
-      if (element.compareTo(day) == 0) {
+      if (isEqualsDay(element, day)) {
         isExercise = true;
       }
     });
