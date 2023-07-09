@@ -16,7 +16,6 @@ import 'package:drift/drift.dart' as drift;
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? data) async {
   if (data?.host == 'titleclicked') {
-    print('widget click');
     var memoCompanion = MemoCompanion(
       writeTime: drift.Value(DateTime.now()),
       memo: const drift.Value(''),
@@ -31,10 +30,7 @@ void backgroundCallback(Uri? data) async {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(ChangeNotifierProvider(
-    create: (_) => ExampleModel(),
-    child: const MyApp(),
-  ));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {

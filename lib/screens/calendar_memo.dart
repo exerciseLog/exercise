@@ -49,65 +49,62 @@ class _CalendarMemoState extends State<CalendarMemo> {
   @override
   Widget build(BuildContext context) {
     final calendarProvider = context.watch<CalendarProvider>();
-    return Scaffold(
-      appBar: AppBar(title: const Text("ExerciseLog")),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 40,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 40,
+          ),
+          TableCalendar(
+            firstDay: kFirstDay,
+            lastDay: kLastDay,
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            rangeStartDay: _rangeStart,
+            rangeEndDay: _rangeEnd,
+            calendarFormat: _calendarFormat,
+            rangeSelectionMode: _rangeSelectionMode,
+            eventLoader: (day) {
+              return isExerciseDay(day) ? [1] : [];
+            },
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            calendarStyle: const CalendarStyle(
+                // Use `CalendarStyle` to customize the UI
+                outsideDaysVisible: false,
+                markerDecoration: BoxDecoration(
+                  color: Color(0xffF67098),
+                  shape: BoxShape.circle,
+                )),
+            onDaySelected: _onDaySelected,
+            onRangeSelected: _onRangeSelected,
+            onFormatChanged: (format) {
+              if (_calendarFormat != format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              }
+            },
+            onPageChanged: (focusedDay) {
+              _focusedDay = focusedDay;
+            },
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          TextField(
+            focusNode: memoTextFocus,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: '오늘의 운동',
             ),
-            TableCalendar(
-              firstDay: kFirstDay,
-              lastDay: kLastDay,
-              focusedDay: _focusedDay,
-              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-              rangeStartDay: _rangeStart,
-              rangeEndDay: _rangeEnd,
-              calendarFormat: _calendarFormat,
-              rangeSelectionMode: _rangeSelectionMode,
-              eventLoader: (day) {
-                return isExerciseDay(day) ? [1] : [];
-              },
-              startingDayOfWeek: StartingDayOfWeek.monday,
-              calendarStyle: const CalendarStyle(
-                  // Use `CalendarStyle` to customize the UI
-                  outsideDaysVisible: false,
-                  markerDecoration: BoxDecoration(
-                    color: Color(0xffF67098),
-                    shape: BoxShape.circle,
-                  )),
-              onDaySelected: _onDaySelected,
-              onRangeSelected: _onRangeSelected,
-              onFormatChanged: (format) {
-                if (_calendarFormat != format) {
-                  setState(() {
-                    _calendarFormat = format;
-                  });
-                }
-              },
-              onPageChanged: (focusedDay) {
-                _focusedDay = focusedDay;
-              },
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            TextField(
-              focusNode: memoTextFocus,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: '오늘의 운동',
-              ),
-              maxLines: 10,
-              controller: _memoController,
-            ),
-            OutlinedButton(
-              onPressed: () => _memoSaved(context),
-              child: const Text('저장'),
-            ),
-          ],
-        ),
+            maxLines: 10,
+            controller: _memoController,
+          ),
+          OutlinedButton(
+            onPressed: () => _memoSaved(context),
+            child: const Text('저장'),
+          ),
+        ],
       ),
     );
   }
