@@ -46,3 +46,8 @@ List<DateTime> daysInRange(DateTime first, DateTime last) {
     (index) => DateTime.utc(first.year, first.month, first.day + index),
   );
 }
+
+bool isEqualsDay(DateTime dateTime1, DateTime dateTime2) {
+  return dateTime1.toString().split(' ')[0] ==
+      dateTime2.toString().split(' ')[0];
+}

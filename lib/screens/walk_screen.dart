@@ -60,11 +60,11 @@ class _BmiScreenState extends State<BmiScreen> {
   void _listenToSensor() {
     _streamSubscription =
         accelerometerEvents.listen((AccelerometerEvent event) {
-          setState(() {
-            _lastEvent = event;
-            _calculateSteps();
-          });
-        });
+      setState(() {
+        _lastEvent = event;
+        _calculateSteps();
+      });
+    });
   }
 
   void _calculateSteps() {
@@ -167,92 +167,86 @@ class _BmiScreenState extends State<BmiScreen> {
   @override
   Widget build(BuildContext context) {
     var bmiProvider = Provider.of<BmiProvider>(context);
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: Text(widget.title), // 상단 앱바에 제목 표시
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text(
-                    '체중 (kg):', // 체중 입력 텍스트
-                  ),
-                  TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        _weight = double.tryParse(value) ?? 0.0;
-                      });
-                    },
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16.0),
-                  const Text(
-                    '신장 (cm):', // 신장 입력 텍스트
-                  ),
-                  TextField(
-                    onChanged: (value) {
-                      bmiProvider.setHeight(value);
-                      setState(() {
-                        _height = double.tryParse(value) ?? 0.0;
-                      });
-                    },
-                    keyboardType: TextInputType.number,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16.0),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text(
-                    '걸음 수:', // 걸음 수 저장 버튼
-                  ),
-                  Text(
-                    '$_steps', // 현재 걸음 수
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      _saveSteps();
-                    },
-                    child: Text('걸음 수 저장'), // 걸음 수 저장 버튼
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16.0),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text(
-                    'BMI 지수:', // BMI 지수 텍스트
-                  ),
-                  Text(
-                    _calculateBMI(),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text(
-                    '감량해야 할 체중:', // 감량해야 할 체중 텍스트
-                  ),
-                  Text(
-                    _calculateTargetWeight(),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
-              ),
-            ],
-          ),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Text(
+                  '체중 (kg):', // 체중 입력 텍스트
+                ),
+                TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _weight = double.tryParse(value) ?? 0.0;
+                    });
+                  },
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16.0),
+                const Text(
+                  '신장 (cm):', // 신장 입력 텍스트
+                ),
+                TextField(
+                  onChanged: (value) {
+                    bmiProvider.setHeight(value);
+                    setState(() {
+                      _height = double.tryParse(value) ?? 0.0;
+                    });
+                  },
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16.0),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Text(
+                  '걸음 수:', // 걸음 수 저장 버튼
+                ),
+                Text(
+                  '$_steps', // 현재 걸음 수
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _saveSteps();
+                  },
+                  child: Text('걸음 수 저장'), // 걸음 수 저장 버튼
+                ),
+              ],
+            ),
+            const SizedBox(height: 16.0),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Text(
+                  'BMI 지수:', // BMI 지수 텍스트
+                ),
+                Text(
+                  _calculateBMI(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Text(
+                  '감량해야 할 체중:', // 감량해야 할 체중 텍스트
+                ),
+                Text(
+                  _calculateTargetWeight(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
