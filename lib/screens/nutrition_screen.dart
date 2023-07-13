@@ -1,18 +1,17 @@
+import 'dart:developer';
+
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calorie_provider.dart';
-import 'package:exercise_log/table/db_helper.dart';
-import 'package:exercise_log/table/memo_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../api_service.dart';
 import '../model/nutrition_model.dart';
 import 'package:flutter_cupertino_datetime_picker/flutter_cupertino_datetime_picker.dart';
-import 'package:get_it/get_it.dart';
-import 'package:drift/drift.dart' as drift;
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import '../provider/bmi_provider.dart';
+import '../provider/calendar_provider.dart';
 
 class NutApiPage extends StatefulWidget {
   const NutApiPage({Key? key}) : super(key: key);
@@ -23,16 +22,47 @@ class NutApiPage extends StatefulWidget {
 
 class _NutApiPageState extends State<NutApiPage> {
   static const _pageSize = 10;
-  final PagingController<int, NutApiModel> _pagingController = 
-    PagingController(firstPageKey: 0);
   TextEditingController apiCtrl = TextEditingController();
   TextEditingController dlgCtrl = TextEditingController();
- 
+  final PagingController<int, NutApiModel> _pagingController = 
+            PagingController(firstPageKey: 0);
+  
+  @override
+  void initState() {
+    super.initState();
+    try {
+      _pagingController.addPageRequestListener((pageKey) {
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          var apiItems = Provider.of<ApiProvider>(context, listen: false).inList;
+          log("full: ${apiItems.length}");
+          if(apiItems.isEmpty) {
+            _pagingController.appendLastPage(<NutApiModel>[]);
+            return;
+          } 
+          log(pageKey.toString());
+          final nextPageKey = pageKey + _pageSize;
+          final isLastPage = nextPageKey >= 100;
+          final appendPage = apiItems.sublist(pageKey, nextPageKey);
+          if(isLastPage) {
+            _pagingController.appendLastPage(appendPage);
+          } else {
+            _pagingController.appendPage(appendPage, nextPageKey);
+          }
+        });
+          
+      });
+    } catch (e) {
+      _pagingController.error = e;
+      log(e.toString());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var api = Provider.of<ApiProvider>(context);
     var cal = Provider.of<CalorieProvider>(context);
     var bmi = Provider.of<BmiProvider>(context);
+    var calender = context.watch<CalendarProvider>();
     var selectedCal = cal.selectedCal;
     var numCal = cal.getCalorie;
     var stdCal = bmi.getStandardCalorie();
@@ -85,13 +115,17 @@ class _NutApiPageState extends State<NutApiPage> {
                               final nextPageKey = pageKey + newItems.length;
                               _pagingController.appendPage(newItems, nextPageKey);
                             }
+                            _pagingController.refresh();
                           }); */
                           List<NutApiModel> resultList = await ApiService.getNutrition(foodName);
-                          api.setResult(resultList);                        
+                          api.setResult(resultList);
+                          _pagingController.refresh();
+                          
                           apiCtrl.clear();
                           cal.resetList();
                         }
                         catch(err) {
+                          _pagingController.error = err;
                           ElegantNotification.error(
                               title: const Text("오류"),
                               description: Text('$err'))
@@ -116,33 +150,37 @@ class _NutApiPageState extends State<NutApiPage> {
               visible: api.inProgress,
               child: const CircularProgressIndicator(),
             ),
-            SingleChildScrollView(
+            /* SingleChildScrollView(
               scrollDirection: Axis.vertical,
               child: Column(
-                children: [
+                children: [ */
                   Container(
                     alignment: Alignment.topLeft,
                     height: 300,
-                    child: /* PagedListView<int, NutApiModel> (
+                    child: PagedListView<int, NutApiModel>.separated (
                       pagingController: _pagingController,
                       builderDelegate: PagedChildBuilderDelegate<NutApiModel>(
                         itemBuilder: (context, item, index) {
                           return ApiListItem(
                             index: index,
-                            name: api.inList[index].name,
-                            maker: api.inList[index].maker,
-                            kcal: api.inList[index].kcal,
-                            size: api.inList[index].size,
-                            carb: api.inList[index].carb,
-                            protien: api.inList[index].protien,
-                            fat: api.inList[index].fat,
-                            sugar: api.inList[index].sugar,
-                            sodium: api.inList[index].sodium,
-                            col: api.inList[index].col
+                            name: item.name,
+                            maker: item.maker,
+                            kcal: item.kcal,
+                            size: item.size,
+                            carb: item.carb,
+                            protien: item.protien,
+                            fat: item.fat,
+                            sugar: item.sugar,
+                            sodium: item.sodium,
+                            col: item.col
                           );
                         },
-                      ), */
-                    ListView.separated(
+                        animateTransitions: true,
+                        transitionDuration: const Duration(milliseconds: 1000)
+                      ),
+                      separatorBuilder: ((context, index) => const Divider()),
+                    ),
+                    /* ListView.separated(
                       padding: const EdgeInsets.all(6),
                       itemCount: api.getLength(),
                       itemBuilder: (BuildContext context, int index) {
@@ -161,11 +199,11 @@ class _NutApiPageState extends State<NutApiPage> {
                       },
                       separatorBuilder: (BuildContext context, int index) =>
                           const Divider(),
-                    ), 
+                    ), */ 
                   ),
-                ],
+                /* ],
               ),
-            ),
+            ), */
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -211,23 +249,17 @@ class _NutApiPageState extends State<NutApiPage> {
                         onMonthChangeStartWithFirstDate: false,
                         locale: DateTimePickerLocale.ko,
                         onConfirm: (dateTime, List<int> index) async {
-                          DateTime selDate = dateTime;
+                          DateTime selDate = DateTime(
+                            dateTime.year, dateTime.month, dateTime.day, 00, 00);
                           var res = DateFormat('yyyy-MM-dd').format(selDate);
                           var foodList = cal.selectedFoodList;
                           String memoValue = '';
                           for (var food in foodList) {
                             memoValue += "$food, ";
                           } 
-                          memoValue += "\n$numCal kcal";                    
-                          await MemoDao(GetIt.I<DbHelper>())
-                            .deleteByWriteTime(selDate);
-                          await MemoDao(GetIt.I<DbHelper>()).createMemo(
-                            MemoCompanion(
-                              writeTime: drift.Value(selDate),
-                              memo: drift.Value(memoValue),
-                              modifyTime: drift.Value(DateTime.now()),
-                            ),
-                          );
+                          memoValue += "\n$numCal kcal";       
+                          context.read<CalendarProvider>().addMemo(selDate, memoValue);
+                          
                           if (context.mounted) {
                             ElegantNotification.success(
                             title: const Text("성공"),

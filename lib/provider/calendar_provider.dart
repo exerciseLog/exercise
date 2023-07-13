@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:drift/drift.dart' as drift;
@@ -24,22 +25,22 @@ class CalendarProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addMemo(DateTime _selectedDay, String memoText) async {
+  Future<void> addMemo(DateTime selectedDay, String memoText) async {
     await MemoDao(GetIt.I<DbHelper>())
-        .deleteByWriteTime(_selectedDay ?? DateTime.now());
+        .deleteByWriteTime(selectedDay ?? DateTime.now());
     var memoCompanion = MemoCompanion(
-      writeTime: drift.Value(_selectedDay ?? DateTime.now()),
+      writeTime: drift.Value(selectedDay ?? DateTime.now()),
       memo: drift.Value(memoText),
       modifyTime: drift.Value(DateTime.now()),
     );
-
+    
     await MemoDao(GetIt.I<DbHelper>()).createMemo(
       memoCompanion,
     );
     _memo.addAll({
-      _selectedDay: MemoData(
+      selectedDay: MemoData(
           id: -1,
-          writeTime: _selectedDay,
+          writeTime: selectedDay,
           memo: memoText,
           modifyTime: DateTime.now())
     });

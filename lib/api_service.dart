@@ -4,7 +4,7 @@ import 'package:exercise_log/model/nutrition_model.dart';
 
 class ApiService {
   static const String url =
-      "https://openapi.foodsafetykorea.go.kr/api/81084e1ce468417b9f5f/I2790/json/1/20";
+      "https://openapi.foodsafetykorea.go.kr/api/81084e1ce468417b9f5f/I2790/json/1/100";
 
   static Future<List<NutApiModel>> getNutrition(String foodName) async {
     List<NutApiModel> resList = [];
