@@ -13,67 +13,51 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+  final List<Widget> _widgetOptions = <Widget>[
+    const CalendarMemo(),
+    const NutApiPage(),
+    const BmiScreen(
+      title: 'BMI',
+    ),
+    const CalendarMemo(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text("ExerciseLog")),
-        body: Center(
-          child: Column(children: [
-            const SizedBox(
-              height: 30,
+      appBar: AppBar(title: const Text("ExerciseLog")),
+      body: _widgetOptions[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today),
+              label: '달력',
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // https://selfish-developer.com/entry/flutter-provider-%ED%8C%A8%ED%84%B4
-                Consumer<ExampleModel>(
-                  builder: (context, model, child) {
-                    return Row(
-                      children: [
-                        // const SizedBox(
-                        //   height: 30,
-                        // ),
-                        // ElevatedButton(
-                        //     onPressed: () =>
-                        //         context.read<ExampleModel>().increaseCount(),
-                        //     child: const Text("provider")),
-                        // const SizedBox(
-                        //   width: 30,
-                        // ),
-                        // Text("count: ${model.counter}"),
-                        const SizedBox(
-                          height: 30,
-                        ),
-                        if (child != null) child
-                      ],
-                    );
-                  },
-                ),
-              ],
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calculate),
+              label: '칼로리',
             ),
-            ElevatedButton(
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const CalendarMemo())),
-                child: const Text("달력")),
-            const SizedBox(
-              height: 30,
+            BottomNavigationBarItem(
+              icon: Icon(Icons.directions_run),
+              label: '만보기',
             ),
-            ElevatedButton(
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const NutApiPage())),
-                child: const Text("칼로리")),
-            const SizedBox(
-              height: 30,
+            BottomNavigationBarItem(
+              icon: Icon(Icons.fastfood),
+              label: '포장주문',
             ),
-            ElevatedButton(
-                onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const BmiScreen(
-                              title: 'BMI',
-                            ))),
-                child: const Text("만보기")),
-          ]),
-        ));
+          ],
+          currentIndex: _selectedIndex,
+          showUnselectedLabels: true,
+          unselectedItemColor: Colors.grey,
+          selectedItemColor: Colors.greenAccent,
+          onTap: _onItemTapped),
+    );
   }
 }

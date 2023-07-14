@@ -14,8 +14,12 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
   }
 
   Future<MemoData?> findByWriteTime(DateTime writeTime) async {
+    var startYear = DateFormat('yyyy').format(writeTime);
+    var startMonth = DateFormat('MM').format(writeTime);
+    var startDay = DateFormat('dd').format(writeTime);
     return (select(memo)
-          ..where((t) => t.writeTime.equals(writeTime))
+          ..where((t) => t.writeTime.isBetweenValues((writeTime),
+              (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59'))))
           ..limit(1))
         .getSingleOrNull();
   }

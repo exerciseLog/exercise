@@ -46,4 +46,23 @@ class CalendarProvider with ChangeNotifier {
     });
     notifyListeners();
   }
+
+  Future<void> finishTodayExercise() async {
+    var today = DateTime.now();
+    await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(today);
+    var memoCompanion = MemoCompanion(
+      writeTime: drift.Value(today),
+      memo: const drift.Value(''),
+      modifyTime: drift.Value(today),
+    );
+
+    await MemoDao(GetIt.I<DbHelper>()).createMemo(
+      memoCompanion,
+    );
+    _memo.addAll({
+      today: MemoData(
+          id: -1, writeTime: today, memo: '', modifyTime: DateTime.now())
+    });
+    notifyListeners();
+  }
 }
