@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:drift/drift.dart' as drift;
+import '../screens/utils.dart';
 import '../table/db_helper.dart';
 import '../table/memo_dao.dart';
 
@@ -24,11 +25,11 @@ class CalendarProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addMemo(DateTime _selectedDay, String memoText) async {
+  Future<void> addMemo(DateTime selectedDay, String memoText) async {
     await MemoDao(GetIt.I<DbHelper>())
-        .deleteByWriteTime(_selectedDay ?? DateTime.now());
+        .deleteByWriteTime(selectedDay ?? DateTime.now());
     var memoCompanion = MemoCompanion(
-      writeTime: drift.Value(_selectedDay ?? DateTime.now()),
+      writeTime: drift.Value(selectedDay ?? DateTime.now()),
       memo: drift.Value(memoText),
       modifyTime: drift.Value(DateTime.now()),
     );
@@ -37,12 +38,19 @@ class CalendarProvider with ChangeNotifier {
       memoCompanion,
     );
     _memo.addAll({
-      _selectedDay: MemoData(
+      selectedDay: MemoData(
           id: -1,
-          writeTime: _selectedDay,
+          writeTime: selectedDay,
           memo: memoText,
           modifyTime: DateTime.now())
     });
+    notifyListeners();
+  }
+
+  Future<void> deleteMemo(DateTime selectedDay) async {
+    await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay);
+
+    _memo.removeWhere((key, value) => isEqualsDay(selectedDay, key));
     notifyListeners();
   }
 

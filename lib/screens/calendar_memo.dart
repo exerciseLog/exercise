@@ -52,10 +52,13 @@ class _CalendarMemoState extends State<CalendarMemo> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          const SizedBox(
-            height: 40,
-          ),
           TableCalendar(
+            headerStyle: HeaderStyle(
+              titleCentered: true,
+              formatButtonVisible: false,
+            ),
+            availableCalendarFormats: {CalendarFormat.month: 'Month'},
+            locale: 'ko_KR',
             firstDay: kFirstDay,
             lastDay: kLastDay,
             focusedDay: _focusedDay,
@@ -100,9 +103,22 @@ class _CalendarMemoState extends State<CalendarMemo> {
             maxLines: 10,
             controller: _memoController,
           ),
-          OutlinedButton(
-            onPressed: () => _memoSaved(context),
-            child: const Text('저장'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              OutlinedButton(
+                onPressed: () => _memoSaved(context),
+                child: const Text('저장'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: OutlinedButton(
+                  onPressed: () => _memoDelete(context),
+                  child: const Text('삭제',
+                      style: TextStyle(color: Colors.redAccent)),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -125,6 +141,11 @@ class _CalendarMemoState extends State<CalendarMemo> {
         .read<CalendarProvider>()
         .addMemo(_selectedDay ?? DateTime.now(), _memoController.text);
     Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
+  }
+
+  void _memoDelete(BuildContext context) {
+    context.read<CalendarProvider>().deleteMemo(_selectedDay ?? DateTime.now());
+    Fluttertoast.showToast(msg: '메모가 삭제되었습니다.');
   }
 
   @override

@@ -24,6 +24,16 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
         .getSingleOrNull();
   }
 
+  Future<int> deleteByWriteTime(DateTime writeTime) async {
+    var startYear = DateFormat('yyyy').format(writeTime);
+    var startMonth = DateFormat('MM').format(writeTime);
+    var startDay = DateFormat('dd').format(writeTime);
+    return await (delete(memo)
+          ..where((t) => t.writeTime.isBetweenValues((writeTime),
+              (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59')))))
+        .go();
+  }
+
   Future<List<MemoData>> findMonthByWriteTime(DateTime writeTime) {
     var startYear = DateFormat('yyyy').format(writeTime);
     var startMonth = DateFormat('MM').format(writeTime);
@@ -46,9 +56,9 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
         .write(MemoCompanion(modifyTime: Value(modifyTime)));
   }
 
-  Future<int> deleteByWriteTime(DateTime writeTime) {
-    return (delete(memo)..where((tbl) => tbl.writeTime.equals(writeTime))).go();
-  }
+  // Future<int> deleteByWriteTime(DateTime writeTime) {
+  //   return (delete(memo)..where((tbl) => tbl.writeTime.equals(writeTime))).go();
+  // }
 
   Future<int> deleteAll() async {
     return delete(memo).go();
