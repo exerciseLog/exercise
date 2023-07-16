@@ -27,6 +27,9 @@ class _CalendarMemoState extends State<CalendarMemo> {
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
+  List<String> dropdownList = ['데드리프트', '벤치프레스', '스쿼트'];
+  String selectedDropdown = '데드리프트';
+
   final _memoController = TextEditingController();
 
   @override
@@ -91,8 +94,28 @@ class _CalendarMemoState extends State<CalendarMemo> {
               _focusedDay = focusedDay;
             },
           ),
-          const SizedBox(
-            height: 30,
+          Row(
+            children: [
+              Expanded(
+                flex: 4,
+                child: DropdownButton(
+                    isExpanded: true,
+                    value: selectedDropdown,
+                    items: dropdownList.map((String item) {
+                      return DropdownMenuItem<String>(
+                        child: Text('$item'),
+                        value: item,
+                        alignment: Alignment.center,
+                      );
+                    }).toList(),
+                    onChanged: (dynamic value) {
+                      setState(() {
+                        selectedDropdown = value;
+                      });
+                    }),
+              ),
+              IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+            ],
           ),
           TextField(
             focusNode: memoTextFocus,
