@@ -94,29 +94,6 @@ class _CalendarMemoState extends State<CalendarMemo> {
               _focusedDay = focusedDay;
             },
           ),
-          Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: DropdownButton(
-                    isExpanded: true,
-                    value: selectedDropdown,
-                    items: dropdownList.map((String item) {
-                      return DropdownMenuItem<String>(
-                        child: Text('$item'),
-                        value: item,
-                        alignment: Alignment.center,
-                      );
-                    }).toList(),
-                    onChanged: (dynamic value) {
-                      setState(() {
-                        selectedDropdown = value;
-                      });
-                    }),
-              ),
-              IconButton(onPressed: () {}, icon: Icon(Icons.add)),
-            ],
-          ),
           TextField(
             focusNode: memoTextFocus,
             decoration: const InputDecoration(
