@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calorie_provider.dart';
@@ -26,6 +25,21 @@ class _NutApiPageState extends State<NutApiPage> {
   TextEditingController dlgCtrl = TextEditingController();
   final PagingController<int, NutApiModel> _pagingController = 
             PagingController(firstPageKey: 0);
+
+  noItemsFoundIndicator(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Text("결과 없음", 
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          SizedBox(height: 12),
+          Text("제품 명을 검색하세요."),
+        ],
+      ),
+    );
+  }
   
   @override
   void initState() {
@@ -152,6 +166,7 @@ class _NutApiPageState extends State<NutApiPage> {
                         col: item.col
                       );
                     },
+                    noItemsFoundIndicatorBuilder: (_) => noItemsFoundIndicator(context),
                     animateTransitions: true,
                     transitionDuration: const Duration(milliseconds: 1500)
                   ),
@@ -168,9 +183,9 @@ class _NutApiPageState extends State<NutApiPage> {
                       onPressed: () {
                         if(selectedCal == '') {
                           ElegantNotification.error(
-                                title: const Text("오류"),
-                                description: const Text('선택된 음식이 없습니다.'))
-                                .show(context);
+                              title: const Text("오류"),
+                              description: const Text('선택된 음식이 없습니다.'))
+                              .show(context);
                         }
                         else {
                           cal.addCalorie(cal.selectedFood, selectedCal, stdCal);

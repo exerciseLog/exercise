@@ -1,8 +1,8 @@
 import 'package:exercise_log/provider/api_provider.dart';
-import 'package:exercise_log/notifier/example_model.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/provider/bmi_provider.dart';
 import 'package:exercise_log/provider/calorie_provider.dart';
+import 'package:exercise_log/provider/position_provider.dart';
 import 'package:exercise_log/screens/home_screen.dart';
 import 'package:exercise_log/table/db_helper.dart';
 import 'package:exercise_log/table/memo_dao.dart';
@@ -66,6 +66,9 @@ class _MyAppState extends State<MyApp> {
         ),
         ChangeNotifierProvider<BmiProvider>(
           create: (BuildContext context) => BmiProvider(),
+        ),
+        ChangeNotifierProvider<PositionProvider>(
+          create: (BuildContext context) => PositionProvider(),
         ),
       ],
       child: const MaterialApp(
