@@ -13,11 +13,13 @@ class PositionProvider with ChangeNotifier {
   PolylinePoints polylinePoints = PolylinePoints();
   final Map<PolylineId, Polyline> _polylines = {};
   String _textDistance = "시작 버튼을 눌러 거리를 측정하세요!";
+  double _totalDistance = 0;
   bool onWalking = false;
   late LatLng lastPosition;
   late LatLng currentPosition;
 
   String get textDistance => _textDistance;
+  double get totalDistance => _totalDistance;
   List<Marker> get markers => _markers;
   Map<PolylineId, Polyline> get polylines => _polylines;
   
@@ -29,10 +31,10 @@ class PositionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  checkWalking(Completer<GoogleMapController> mapcontroller) async {
+  checkWalking(Completer<GoogleMapController> mapController) async {
     if(!onWalking) return;
 
-    final GoogleMapController controller = await mapcontroller.future;
+    final GoogleMapController controller = await mapController.future;
     _getUserLocation().then((value) async {
       _getDirection(value);
       _markers.add(
@@ -50,7 +52,7 @@ class PositionProvider with ChangeNotifier {
       notifyListeners();
     });
     Future.delayed(const Duration(seconds: 5), () {
-      checkWalking(mapcontroller);
+      checkWalking(mapController);
     });
   }
   
@@ -75,17 +77,17 @@ class PositionProvider with ChangeNotifier {
     currentPosition = LatLng(position.latitude, position.longitude);
     polylineList.add(currentPosition);
     
-    double totalDistance = 0;
+    _totalDistance = 0;
     for(var i = 0; i < polylineList.length-1; i++){
-      totalDistance += _calculateDistance(
+      _totalDistance += _calculateDistance(
         polylineList[i].latitude, 
         polylineList[i].longitude, 
         polylineList[i+1].latitude, 
         polylineList[i+1].longitude);
     }
 
-    totalDistance = double.parse(totalDistance.toStringAsFixed(2));
-    _textDistance = "거리: ${totalDistance}km";
+    _totalDistance = double.parse(_totalDistance.toStringAsFixed(2));
+    _textDistance = "거리: ${_totalDistance}km";
     //add to the list of poly line coordinates
     _addPolyLine(polylineList);
     notifyListeners();

@@ -11,6 +11,7 @@ import 'package:flutter_cupertino_datetime_picker/flutter_cupertino_datetime_pic
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import '../provider/bmi_provider.dart';
 import '../provider/calendar_provider.dart';
+import 'package:animations/animations.dart';
 
 class NutApiPage extends StatefulWidget {
   const NutApiPage({Key? key}) : super(key: key);
@@ -219,7 +220,7 @@ class _NutApiPageState extends State<NutApiPage> {
                           onMonthChangeStartWithFirstDate: false,
                           locale: DateTimePickerLocale.ko,
                           onConfirm: (dateTime, List<int> index) async {
-                            DateTime selDate = DateTime(
+                            DateTime selDate = DateTime.utc(
                               dateTime.year, dateTime.month, dateTime.day, 00, 00);
                             var res = DateFormat('yyyy-MM-dd').format(selDate);
                             var foodList = cal.selectedFoodList;
@@ -347,8 +348,12 @@ class ApiListItem extends StatelessWidget {
             icon: const Icon(Icons.more_vert), 
             iconSize: 15,
             onPressed: () async {
-              return showDialog(
+              return showModal(
                 context: context,
+                configuration: const FadeScaleTransitionConfiguration(
+                  transitionDuration: Duration(milliseconds: 300),
+                  reverseTransitionDuration: Duration(milliseconds: 150)
+                ),
                 builder: (context) {
                   return AlertDialog(
                     title: const Text("영양 상세"),
