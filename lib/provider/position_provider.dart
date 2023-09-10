@@ -23,10 +23,13 @@ class PositionProvider with ChangeNotifier {
   List<Marker> get markers => _markers;
   Map<PolylineId, Polyline> get polylines => _polylines;
   
-  positionInit() {
+  positionInit(Completer<GoogleMapController> mapController) {
     _getUserLocation().then((value) async {
       currentPosition = LatLng(value.latitude, value.longitude);
       polylineList.add(currentPosition);
+      Future.delayed(const Duration(seconds: 1), () {
+        checkWalking(mapController);
+      });
     });
     notifyListeners();
   }
@@ -37,13 +40,13 @@ class PositionProvider with ChangeNotifier {
     final GoogleMapController controller = await mapController.future;
     _getUserLocation().then((value) async {
       _getDirection(value);
-      _markers.add(
+      /* _markers.add(
         Marker(
           markerId: const MarkerId("value"),
           position: LatLng(value.latitude, value.longitude),
           infoWindow: const InfoWindow(title: '현재 위치')
         )
-      );
+      ); */
       var cameraPosition = CameraPosition(
         target: LatLng(value.latitude, value.longitude), zoom: 18
       );
@@ -56,11 +59,11 @@ class PositionProvider with ChangeNotifier {
     });
   }
   
-  resetWalking() {
+  resetWalking(bool isDispose) {
     onWalking = false;
     polylineList.clear();
-     _textDistance = "시작 버튼을 눌러 거리를 측정하세요!";
-    notifyListeners();
+    _textDistance = "시작 버튼을 눌러 거리를 측정하세요!";
+    if(!isDispose) notifyListeners();
   }
 
   Future<Position> _getUserLocation() async {

@@ -36,7 +36,18 @@ class _NutApiPageState extends State<NutApiPage> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           SizedBox(height: 12),
-          Text("제품 명을 검색하세요."),
+          Text("음식을 검색하세요."),
+        ],
+      ),
+    );
+  }
+
+  noItemsIndicator(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Text("추가한 음식이 없습니다."),
         ],
       ),
     );
@@ -54,8 +65,9 @@ class _NutApiPageState extends State<NutApiPage> {
             return;
           } 
           log(pageKey.toString());
-          final nextPageKey = pageKey + _pageSize;
-          final isLastPage = nextPageKey >= 100;
+          /* var nextPageKey = pageKey + _pageSize; */
+          final isLastPage = apiItems.length <= pageKey + _pageSize;
+          final nextPageKey = isLastPage ? apiItems.length : pageKey + _pageSize;
           final appendPage = apiItems.sublist(pageKey, nextPageKey);
           if(isLastPage) {
             _pagingController.appendLastPage(appendPage);
@@ -83,8 +95,9 @@ class _NutApiPageState extends State<NutApiPage> {
     
     return SingleChildScrollView(
       child: Center(
-         child: Column(
+          child: Column(
             children: <Widget>[
+              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -148,33 +161,39 @@ class _NutApiPageState extends State<NutApiPage> {
               ),
               Container(
                 alignment: Alignment.topLeft,
-                height: 250,
-                child: PagedListView<int, NutApiModel>.separated (
-                  pagingController: _pagingController,
-                  builderDelegate: PagedChildBuilderDelegate<NutApiModel>(
-                    itemBuilder: (context, item, index) {
-                      return ApiListItem(
-                        index: index,
-                        name: item.name,
-                        maker: item.maker,
-                        kcal: item.kcal,
-                        size: item.size,
-                        carb: item.carb,
-                        protien: item.protien,
-                        fat: item.fat,
-                        sugar: item.sugar,
-                        sodium: item.sodium,
-                        col: item.col
-                      );
-                    },
-                    noItemsFoundIndicatorBuilder: (_) => noItemsFoundIndicator(context),
-                    animateTransitions: true,
-                    transitionDuration: const Duration(milliseconds: 1500)
+                height: 300,
+                child: Scrollbar(
+                  thickness: 8,
+                  radius: const Radius.circular(12),
+                  child: PagedListView<int, NutApiModel>.separated (
+                    pagingController: _pagingController,
+                    builderDelegate: PagedChildBuilderDelegate<NutApiModel>(
+                      itemBuilder: (context, item, index) {
+                        return ApiListItem(
+                          index: index,
+                          name: item.name,
+                          maker: item.maker,
+                          kcal: item.kcal,
+                          size: item.size,
+                          carb: item.carb,
+                          protien: item.protien,
+                          fat: item.fat,
+                          sugar: item.sugar,
+                          sodium: item.sodium,
+                          col: item.col
+                        );
+                      },
+                      noItemsFoundIndicatorBuilder: (_) => noItemsFoundIndicator(context),
+                      animateTransitions: true,
+                      transitionDuration: const Duration(milliseconds: 1500)
+                    ),
+                    separatorBuilder: ((context, index) => const Divider()),
                   ),
-                  separatorBuilder: ((context, index) => const Divider()),
                 ),
               ),
-    
+              const SizedBox(
+                height: 20,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -246,7 +265,29 @@ class _NutApiPageState extends State<NutApiPage> {
                   child: const Text("등록")
                   ),
                 ]
+              ),
+              const SizedBox(
+                height: 10,
               ), 
+              Tooltip(
+                message: '회원님의 현재 적정 열량은 $stdCal kcal 입니다.',
+                child: Text("총 열량: $numCal kcal($percent%)",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 18.0
+                  ),
+                )
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Text("등록된 음식",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16
+                ),
+              ),
               SingleChildScrollView(
                 scrollDirection: Axis.vertical,
                 child: Column(
@@ -259,6 +300,7 @@ class _NutApiPageState extends State<NutApiPage> {
                         itemCount: cal.selectedCalList.length,
                         itemBuilder: (BuildContext context, int index) {
                           return _CheckedListItem(
+                            index: index,
                             food: cal.selectedFoodList[index],
                             cal: cal.selectedCalList[index],
                           );
@@ -268,17 +310,20 @@ class _NutApiPageState extends State<NutApiPage> {
                   ],
                 ),
               ),
-              Tooltip(
-                message: '회원님의 현재 적정 열량은 $stdCal kcal 입니다.',
-                child: Text("총 열량: $numCal kcal($percent%)",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontStyle: FontStyle.italic,
-                    fontSize: 18.0
-                  ),
-                )
+              ElevatedButton(
+                onPressed: () {
+                  cal.deleteSelectedList();
+                  
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(200, 0, 0, 15),
+                ),
+                child: const Text("삭제"),
               ),
-      
+             
+              const SizedBox(
+                height: 20
+              ),
             ],
         ),
       ),
@@ -499,20 +544,34 @@ class _DialogNutDetail extends StatelessWidget {
 
 class _CheckedListItem extends StatelessWidget {
   const _CheckedListItem({
+    required this.index,
     required this.food,
     required this.cal
   });
 
+  final int index;
   final String food;
   final String cal;
 
   @override
   Widget build(BuildContext context) {
+    var provider = Provider.of<CalorieProvider>(context);
      return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Radio(
+            value: index,
+            groupValue: provider.selListNum,
+            onChanged: cal == '' ? null : (value) {
+              provider.setSelectedList(index);
+              ElegantNotification.info(
+                title: const Text("정보"),
+                description: Text("선택된 음식의 열량: $cal"))
+              .show(context);
+            }
+          ),
           Text("$food : $cal kcal",
             style: const TextStyle(fontSize: 15.0),
           ),

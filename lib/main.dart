@@ -11,6 +11,8 @@ import 'package:get_it/get_it.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 /// Called when Doing Background Work initiated from Widget
 @pragma("vm:entry-point")
@@ -53,6 +55,9 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ApiProvider>(

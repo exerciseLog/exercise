@@ -7,6 +7,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import '../provider/calendar_provider.dart';
 import 'package:animations/animations.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'dart:developer';
 
 class TakeoutScreen extends StatefulWidget {
   const TakeoutScreen({super.key});
@@ -18,19 +20,39 @@ class TakeoutScreen extends StatefulWidget {
 class _TakeoutScreenState extends State<TakeoutScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   PolylinePoints polylinePoints = PolylinePoints();
+  late PositionProvider _positionProvider;
   
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      Provider.of<PositionProvider>(context, listen: false).positionInit();
-    });
+    _positionProvider = Provider.of<PositionProvider>(context, listen: false);
   }  
+
+  void test() async {
+    DatabaseReference ref = FirebaseDatabase.instance.ref('users/123');
+    ref.onChildAdded.listen((event) {
+      var key = event.snapshot.key;
+      var value = event.snapshot.value;
+      log(key!);
+      log(value.toString());
+    });
+
+    ref.onChildRemoved.listen((event) {
+      
+    });
+
+    /* await ref.set({
+      "name": "John",
+      "age": 18,
+      "address": {
+        "line1": "100 Mountain View"
+      }
+    }); */
+  }
 
   @override
   Widget build(BuildContext context) {
     var position = Provider.of<PositionProvider>(context);
-
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -51,7 +73,7 @@ class _TakeoutScreenState extends State<TakeoutScreen> {
             onPressed: () {
               if(!position.onWalking) {
                 position.onWalking = true;
-                position.checkWalking(_controller);
+                position.positionInit(_controller);
                 
               }
             },
@@ -66,7 +88,7 @@ class _TakeoutScreenState extends State<TakeoutScreen> {
                   description: const Text("운동 거리가 측정되지 않았습니다."))
                 .show(context);
               }
-              position.resetWalking();
+              position.resetWalking(false);
               return showModal(
                 context: context,
                 configuration: const FadeScaleTransitionConfiguration(
@@ -112,10 +134,24 @@ class _TakeoutScreenState extends State<TakeoutScreen> {
             },
             child: const Text("종료")
           ),
-          Text(position.textDistance)
+          const SizedBox(height: 15),
+          Text(position.textDistance),
+          const SizedBox(height: 100),
+          /* TextButton(
+            onPressed: () {
+              test();
+            },
+            child: const Text("forTest")
+          ) */
         ],
       ), 
     );
+  }
+
+  @override
+  void dispose() {
+    _positionProvider.resetWalking(true);
+    super.dispose();
   }
 }
 
