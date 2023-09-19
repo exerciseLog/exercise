@@ -94,14 +94,31 @@ class _CalendarMemoState extends State<CalendarMemo> {
               _focusedDay = focusedDay;
             },
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              memoTypeButton("음식"),
+              memoTypeButton("걸음"),
+              memoTypeButton("운동"),
+            ],
+          ),
           TextField(
             focusNode: memoTextFocus,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               labelText: '오늘의 운동',
             ),
-            maxLines: 10,
+            maxLines: 3,
             controller: _memoController,
+          ),
+          SizedBox(
+            height: 100,
+            child: ListView.builder(itemBuilder: (context, index) {
+              const ExpansionTile(
+                title: Text("타이틀"),
+                children: [Text("하위")],
+              );
+            }),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -123,6 +140,10 @@ class _CalendarMemoState extends State<CalendarMemo> {
         ],
       ),
     );
+  }
+
+  Widget memoTypeButton(String value) {
+    return OutlinedButton(onPressed: () {}, child: Text(value));
   }
 
   bool isExerciseDay(DateTime day) {
