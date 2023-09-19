@@ -192,7 +192,6 @@ class _CalendarMemoState extends State<CalendarMemo> {
         setState(() {
           _memoController.text = '';
         });
-        Fluttertoast.showToast(msg: '해당 날짜에 저장된 기록이 없습니다.');
       } else {
         setState(() {
           _memoController.text = memo.memo;
