@@ -1,3 +1,4 @@
+import 'package:exercise_log/model/enum/memo_type.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/screens/utils.dart';
 import 'package:exercise_log/table/db_helper.dart';
@@ -97,9 +98,10 @@ class _CalendarMemoState extends State<CalendarMemo> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              memoTypeButton("음식"),
-              memoTypeButton("걸음"),
-              memoTypeButton("운동"),
+              memoTypeButton(MemoType.all.buttonValue),
+              memoTypeButton(MemoType.ateFood.buttonValue),
+              memoTypeButton(MemoType.walk.buttonValue),
+              memoTypeButton(MemoType.exercise.buttonValue),
             ],
           ),
           TextField(
