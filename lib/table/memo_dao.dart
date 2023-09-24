@@ -13,7 +13,7 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
     return (select(memo)..where((t) => t.id.equals(id))).getSingle();
   }
 
-  Future<MemoData?> findByWriteTime(DateTime writeTime) async {
+  Future<MemoData?> findFirstMemoByWriteTime(DateTime writeTime) async {
     var startYear = DateFormat('yyyy').format(writeTime);
     var startMonth = DateFormat('MM').format(writeTime);
     var startDay = DateFormat('dd').format(writeTime);
@@ -22,6 +22,16 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
               (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59'))))
           ..limit(1))
         .getSingleOrNull();
+  }
+
+  Future<List<MemoData?>> findDayMemoByWriteTime(DateTime writeTime) async {
+    var startYear = DateFormat('yyyy').format(writeTime);
+    var startMonth = DateFormat('MM').format(writeTime);
+    var startDay = DateFormat('dd').format(writeTime);
+    return (select(memo)
+          ..where((t) => t.writeTime.isBetweenValues((writeTime),
+              (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59')))))
+        .get();
   }
 
   Future<int> deleteByWriteTime(DateTime writeTime) async {

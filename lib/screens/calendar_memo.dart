@@ -17,6 +17,8 @@ class CalendarMemo extends StatefulWidget {
   State<CalendarMemo> createState() => _CalendarMemoState();
 }
 
+//todo :: 페이지 최하단에 입력했던 운동 그대로 나오도록하고 옆으로 밀면 삭제 가능,
+//toso :: 걷기 & 칼로리 클릭시 메모 입력 창 가리기
 class _CalendarMemoState extends State<CalendarMemo> {
   late final ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
@@ -57,11 +59,11 @@ class _CalendarMemoState extends State<CalendarMemo> {
       child: Column(
         children: [
           TableCalendar(
-            headerStyle: HeaderStyle(
+            headerStyle: const HeaderStyle(
               titleCentered: true,
               formatButtonVisible: false,
             ),
-            availableCalendarFormats: {CalendarFormat.month: 'Month'},
+            availableCalendarFormats: const {CalendarFormat.month: 'Month'},
             locale: 'ko_KR',
             firstDay: kFirstDay,
             lastDay: kLastDay,
@@ -120,6 +122,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
                 title: Text("타이틀"),
                 children: [Text("하위")],
               );
+              return null;
             }),
           ),
           Row(
@@ -209,9 +212,9 @@ class _CalendarMemoState extends State<CalendarMemo> {
         _rangeSelectionMode = RangeSelectionMode.toggledOff;
         memoTextFocus.unfocus();
       });
-      var memo =
-          await MemoDao(GetIt.I<DbHelper>()).findByWriteTime(selectedDay);
-      if (memo == null) {
+      var memo = await MemoDao(GetIt.I<DbHelper>())
+          .findDayMemoByWriteTime(selectedDay);
+      if (memo.isEmpty) {
         setState(() {
           _memoController.text = '';
         });
