@@ -61,6 +61,8 @@ dependencies:
   animations: ^2.0.8
   firebase_core: ^2.15.1
   firebase_database: ^10.2.5
+  url_launcher: ^6.1.11
+  google_place: ^0.4.7
   
 dev_dependencies:
   flutter_test:

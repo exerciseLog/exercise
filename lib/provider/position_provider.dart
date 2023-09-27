@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:exercise_log/model/place_model.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:http/http.dart';
 import 'dart:math';
 import 'dart:developer' as dev;
-
+import 'package:url_launcher/url_launcher.dart';
 
 class PositionProvider with ChangeNotifier {
+  static String apiKey = "AIzaSyDmOFlGdyiX02ZHhgVgxkaARUJhoGDoSNs";
   final List<Marker> _markers = <Marker> [];
   List<LatLng> polylineList = [];
   PolylinePoints polylinePoints = PolylinePoints();
@@ -17,11 +21,100 @@ class PositionProvider with ChangeNotifier {
   bool onWalking = false;
   late LatLng lastPosition;
   late LatLng currentPosition;
-
+  
   String get textDistance => _textDistance;
   double get totalDistance => _totalDistance;
   List<Marker> get markers => _markers;
   Map<PolylineId, Polyline> get polylines => _polylines;
+
+  showMarker(Completer<GoogleMapController> mapController, BuildContext context) async {
+    final GoogleMapController controller = await mapController.future;
+    double lat = 0.0;
+    double lng = 0.0;
+    _getUserLocation().then((value) async {
+      lat = value.latitude;
+      lng = value.longitude;
+      currentPosition = LatLng(lat, lng);
+      var cameraPosition = CameraPosition(
+        target: LatLng(lat,lng), zoom: 16
+      );
+      controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+      
+      var url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$lat,$lng&radius=1000&type=restaurant&language=ko&key=$apiKey" ;
+      var response = await get(Uri.parse(url));
+      var body = jsonDecode(response.body);
+      var results = body['results'];
+           
+      for(var i = 0; i < results.length; i++) {
+        var geo = results[i]['geometry']['location'];
+        var name = results[i]['name'];
+        var placeId = results[i]['place_id'];
+        var vic = results[i]['vicinity'];
+        var latlng = LatLng(geo['lat'], geo['lng']);
+
+        _markers.add(
+          Marker(
+            markerId: MarkerId("id $i"),
+            position: latlng,
+            infoWindow: InfoWindow(
+              title: name,
+              snippet: vic,
+              onTap: () {
+                _placeDetailDialog(placeId, context);
+              } 
+            ),
+          )
+        );
+      }
+      notifyListeners();
+    });
+  }
+
+  blindMarker() {
+    _markers.clear(); 
+    notifyListeners();
+  }
+
+  Future<void> _launchUrl(String number) async {
+    var url = Uri.parse("tel:$number");
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+  _placeDetailDialog(String placeId, BuildContext context) async {
+    var url = "https://maps.googleapis.com/maps/api/place/details/json?fields=name%2Crating%2Cformatted_phone_number&place_id=$placeId&key=$apiKey";
+    get(Uri.parse(url)).then((value) {
+      var body = jsonDecode(value.body);
+      dev.log(body.toString());
+      var detail = PlaceModel.detailfromJson(body);
+      var formatNum = detail.number == '' ? '정보 없음' : detail.number; 
+      return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("음식점 상세 정보"),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Text("구글 평점: ${detail.rating}"),
+                  Text("전화번호: $formatNum")
+                ],
+              )
+            ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _launchUrl(detail.number);
+              } , 
+              child: const Text("전화 연결 테스트")
+            ),
+          ],
+        );
+      });
+
+    });
+  }
   
   positionInit(Completer<GoogleMapController> mapController) {
     _getUserLocation().then((value) async {
@@ -36,21 +129,14 @@ class PositionProvider with ChangeNotifier {
 
   checkWalking(Completer<GoogleMapController> mapController) async {
     if(!onWalking) return;
-
+    
     final GoogleMapController controller = await mapController.future;
     _getUserLocation().then((value) async {
       _getDirection(value);
-      /* _markers.add(
-        Marker(
-          markerId: const MarkerId("value"),
-          position: LatLng(value.latitude, value.longitude),
-          infoWindow: const InfoWindow(title: '현재 위치')
-        )
-      ); */
+      
       var cameraPosition = CameraPosition(
         target: LatLng(value.latitude, value.longitude), zoom: 18
       );
-      
       controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
       notifyListeners();
     });

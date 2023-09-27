@@ -10,6 +10,8 @@ import 'package:animations/animations.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:developer';
 
+enum Sample { itemTrue, itemFalse }
+
 class TakeoutScreen extends StatefulWidget {
   const TakeoutScreen({super.key});
 
@@ -53,6 +55,8 @@ class _TakeoutScreenState extends State<TakeoutScreen> {
   @override
   Widget build(BuildContext context) {
     var position = Provider.of<PositionProvider>(context);
+    var markers = Set<Marker>.of(position.markers);
+    Sample? selectedMenu;
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -63,7 +67,7 @@ class _TakeoutScreenState extends State<TakeoutScreen> {
                 initialCameraPosition: const CameraPosition(target: LatLng(37.5000326, 126.8680013), zoom: 16),
                 myLocationEnabled: true,
                 compassEnabled: true,
-                markers: Set<Marker>.of(position.markers),
+                markers: markers,
                 polylines: Set<Polyline>.of(position.polylines.values),
                 onMapCreated: (GoogleMapController controller) => _controller.complete(controller)
               ),
@@ -136,13 +140,43 @@ class _TakeoutScreenState extends State<TakeoutScreen> {
           ),
           const SizedBox(height: 15),
           Text(position.textDistance),
-          const SizedBox(height: 100),
+          const SizedBox(height: 50),
           /* TextButton(
             onPressed: () {
               test();
             },
             child: const Text("forTest")
-          ) */
+          ), */
+          PopupMenuButton(
+            initialValue: selectedMenu,
+            onSelected: (Sample item) {
+              setState(() {
+                selectedMenu = item;               
+              });
+            },
+            itemBuilder: (BuildContext context) =>
+              <PopupMenuEntry<Sample>>[
+                PopupMenuItem(
+                  value: Sample.itemTrue,
+                  onTap: () {
+                    setState(() {
+                      position.showMarker(_controller, context);
+                    });
+                                                
+                  },
+                  child: const Text("보기")
+                ),
+                PopupMenuItem(
+                  value: Sample.itemFalse,
+                  onTap: () {
+                    setState(() {
+                      position.blindMarker();
+                    });
+                  },
+                  child: const Text("가리기"),
+                )
+              ],
+          ),
         ],
       ), 
     );
