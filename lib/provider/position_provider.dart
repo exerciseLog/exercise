@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:exercise_log/model/place_model.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -36,7 +37,7 @@ class PositionProvider with ChangeNotifier {
       lng = value.longitude;
       currentPosition = LatLng(lat, lng);
       var cameraPosition = CameraPosition(
-        target: LatLng(lat,lng), zoom: 16
+        target: LatLng(lat,lng), zoom: 15
       );
       controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
       
@@ -70,9 +71,9 @@ class PositionProvider with ChangeNotifier {
     });
   }
 
-  blindMarker() {
+  blindMarker(bool isDispose) {
     _markers.clear(); 
-    notifyListeners();
+    if(!isDispose) notifyListeners();
   }
 
   Future<void> _launchUrl(String number) async {
@@ -83,12 +84,14 @@ class PositionProvider with ChangeNotifier {
   }
 
   _placeDetailDialog(String placeId, BuildContext context) async {
-    var url = "https://maps.googleapis.com/maps/api/place/details/json?fields=name%2Crating%2Cformatted_phone_number&place_id=$placeId&key=$apiKey";
+    var url = "https://maps.googleapis.com/maps/api/place/details/json?language=ko&place_id=$placeId&key=$apiKey";
+    dev.log(url);
     get(Uri.parse(url)).then((value) {
       var body = jsonDecode(value.body);
       dev.log(body.toString());
       var detail = PlaceModel.detailfromJson(body);
-      var formatNum = detail.number == '' ? '정보 없음' : detail.number; 
+      var rating = detail.rating == 'null' ? '정보 없음' : detail.rating;
+      
       return showDialog(
         context: context,
         builder: (context) {
@@ -97,22 +100,50 @@ class PositionProvider with ChangeNotifier {
             content: SingleChildScrollView(
               child: Column(
                 children: [
-                  Text("구글 평점: ${detail.rating}"),
-                  Text("전화번호: $formatNum")
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(detail.openNow, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Visibility(
+                        visible: detail.openDetail == "null" ? false : true,
+                        child: Tooltip(
+                          message: detail.openDetail,
+                          child: const Icon(
+                            Icons.info, size: 20,
+                          ),
+                        )
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Text("전화번호: ${detail.number}"),
+                  Text("구글 평점: $rating"),
+                  Text("포장 가능 여부: ${detail.delivery}"),
+                  
                 ],
               )
             ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _launchUrl(detail.number);
-              } , 
-              child: const Text("전화 연결 테스트")
-            ),
-          ],
-        );
-      });
-
+            actions: [
+              TextButton(
+                onPressed: () {
+                  if(detail.number == '정보 없음') {
+                    Fluttertoast.showToast(msg: '음식점에서 전화번호를 제공하지 않습니다.');
+                  } else {
+                    _launchUrl(detail.number);
+                  }
+                },
+                child: const Text("전화 연결")
+              ),
+              TextButton(
+                onPressed: () {
+                  Fluttertoast.showToast(msg: '준비 중입니다.');
+                },
+                child: const Text("채팅으로 연결")
+              )
+            ],
+          );
+        }
+      );
     });
   }
   

@@ -107,7 +107,7 @@ class _NutApiPageState extends State<NutApiPage> {
                       controller: apiCtrl,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.add_box_outlined),
-                        hintText: '검색',
+                        hintText: '음식 입력',
                         iconColor: Color.fromARGB(200, 20, 20, 255)),
                     )
                   ),
@@ -262,29 +262,42 @@ class _NutApiPageState extends State<NutApiPage> {
                        
                       }
                     }, 
-                  child: const Text("등록")
+                  child: const Text("달력에 기록")
                   ),
                 ]
               ),
               const SizedBox(
                 height: 10,
-              ), 
-              Tooltip(
-                message: '회원님의 현재 적정 열량은 $stdCal kcal 입니다.',
-                child: Text("총 열량: $numCal kcal($percent%)",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontStyle: FontStyle.italic,
-                    fontSize: 18.0
-                  ),
-                )
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Tooltip(
+                    message: '회원님의 현재 적정 열량은 $stdCal kcal 입니다.',
+                    child: Text("총 열량: $numCal kcal($percent%)",
+                      style: const TextStyle(
+                        fontFamily: 'NaverNanum',
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w600
+                      ),
+                    )
+                  ),
+                  const Tooltip(
+                    message: '현재 입력된 음식 리스트의 총 열량과 입력된 신체 정보에 따른 일일 열량 소비량의 예측 값입니다.' 
+                    '정확한 소비량 계산은 전문가와 상의하세요!',
+                    child: Icon(
+                      Icons.help_outline_outlined,
+                      size: 24,
+                    ),
+                  )
+                ],
+              ), 
               const SizedBox(
                 height: 20,
               ),
-              const Text("등록된 음식",
+              const Text("먹은 음식",
                 style: TextStyle(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   fontSize: 16
                 ),
               ),
@@ -377,10 +390,6 @@ class ApiListItem extends StatelessWidget {
               groupValue: cal.listNum,
               onChanged: kcal == '' ? null : (value) {
                 cal.setCalorie(name, kcal, index);  
-                ElegantNotification.info(
-                      title: const Text("정보"),
-                      description: Text("선택된 음식의 열량: $kcal"))
-                  .show(context);
               }),
           Expanded(
               child: _Description(
