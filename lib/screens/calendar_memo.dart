@@ -148,7 +148,11 @@ class _CalendarMemoState extends State<CalendarMemo> {
   }
 
   Widget memoTypeButton(String value) {
-    return OutlinedButton(onPressed: () {}, child: Text(value));
+    return OutlinedButton(
+        onPressed: () {
+          context.read<CalendarProvider>().memoType = memoTypeMapper(value);
+        },
+        child: Text(value));
   }
 
   bool isExerciseDay(DateTime day) {
@@ -213,14 +217,14 @@ class _CalendarMemoState extends State<CalendarMemo> {
         memoTextFocus.unfocus();
       });
       var memo = await MemoDao(GetIt.I<DbHelper>())
-          .findDayMemoByWriteTime(selectedDay);
+          .findDayMemoByWriteTime(selectedDay, MemoType.ateFood);
       if (memo.isEmpty) {
         setState(() {
           _memoController.text = '';
         });
       } else {
         setState(() {
-          _memoController.text = memo.memo;
+          _memoController.text = "";
         });
       }
 

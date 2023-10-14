@@ -1,3 +1,4 @@
+import 'package:exercise_log/model/enum/memo_type.dart';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/notifier/example_model.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
@@ -18,10 +19,10 @@ import 'package:drift/drift.dart' as drift;
 void backgroundCallback(Uri? data) async {
   if (data?.host == 'titleclicked') {
     var memoCompanion = MemoCompanion(
-      writeTime: drift.Value(DateTime.now()),
-      memo: const drift.Value(''),
-      modifyTime: drift.Value(DateTime.now()),
-    );
+        writeTime: drift.Value(DateTime.now()),
+        memo: const drift.Value(''),
+        modifyTime: drift.Value(DateTime.now()),
+        memoType: drift.Value(MemoType.exercise.name));
     final database = DbHelper();
     await MemoDao(database).createMemo(
       memoCompanion,
