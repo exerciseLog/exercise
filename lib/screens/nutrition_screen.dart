@@ -1,4 +1,5 @@
 import 'package:elegant_notification/elegant_notification.dart';
+import 'package:exercise_log/model/enum/memo_type.dart';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calorie_provider.dart';
 import 'package:exercise_log/table/db_helper.dart';
@@ -202,13 +203,13 @@ class _NutApiPageState extends State<NutApiPage> {
                       }
                       memoValue += "\n$numCal kcal";
                       await MemoDao(GetIt.I<DbHelper>())
-                          .deleteByWriteTime(selDate);
+                          .deleteByWriteTime(selDate, MemoType.ateFood);
                       await MemoDao(GetIt.I<DbHelper>()).createMemo(
                         MemoCompanion(
-                          writeTime: drift.Value(selDate),
-                          memo: drift.Value(memoValue),
-                          modifyTime: drift.Value(DateTime.now()),
-                        ),
+                            writeTime: drift.Value(selDate),
+                            memo: drift.Value(memoValue),
+                            modifyTime: drift.Value(DateTime.now()),
+                            memoType: drift.Value(MemoType.ateFood.name)),
                       );
                       if (context.mounted) {
                         ElegantNotification.success(

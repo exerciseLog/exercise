@@ -29,6 +29,7 @@ class CalendarProvider with ChangeNotifier {
       writeTime: drift.Value(selectedDay),
       memo: drift.Value(memoText),
       modifyTime: drift.Value(DateTime.now()),
+      memoType: drift.Value(memoType.name),
     );
 
     await MemoDao(GetIt.I<DbHelper>()).createMemo(
@@ -40,7 +41,7 @@ class CalendarProvider with ChangeNotifier {
           writeTime: selectedDay,
           memo: memoText,
           modifyTime: DateTime.now(),
-          memoType: '')
+          memoType: memoType.name)
     });
     notifyListeners();
   }
@@ -59,6 +60,7 @@ class CalendarProvider with ChangeNotifier {
       writeTime: drift.Value(today),
       memo: const drift.Value(''),
       modifyTime: drift.Value(today),
+      memoType: drift.Value(memoType.name),
     );
 
     await MemoDao(GetIt.I<DbHelper>()).createMemo(

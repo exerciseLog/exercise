@@ -30,7 +30,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
-  List<String> dropdownList = ['데드리프트', '벤치프레스', '스쿼트'];
+  List<String> dropdownList = ['데드리프트', '벤치프레스', '스쿼트 10세트 80\n 레그프레스 5세트 60'];
   String selectedDropdown = '데드리프트';
 
   final _memoController = TextEditingController();
@@ -108,22 +108,25 @@ class _CalendarMemoState extends State<CalendarMemo> {
           ),
           TextField(
             focusNode: memoTextFocus,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: '오늘의 운동',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: '오늘의 ${_memoController.text}',
             ),
             maxLines: 3,
             controller: _memoController,
           ),
-          SizedBox(
+          Container(
             height: 100,
-            child: ListView.builder(itemBuilder: (context, index) {
-              const ExpansionTile(
-                title: Text("타이틀"),
-                children: [Text("하위")],
-              );
-              return null;
-            }),
+            child: ListView.builder(
+              itemCount: dropdownList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ExpansionTile(
+                    title: dropdownList[index].length > 9
+                        ? Text(dropdownList[index].substring(0, 10))
+                        : Text(dropdownList[index]),
+                    children: [memoField(dropdownList[index])]);
+              },
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -198,6 +201,16 @@ class _CalendarMemoState extends State<CalendarMemo> {
     ];
   }
 
+  Widget memoField(String value) {
+    return TextField(
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: value,
+      ),
+      maxLines: 3,
+    );
+  }
+
   // Future<void> getMonthMemo(BuildContext context) async {
   //   var memoList =
   //       await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(DateTime.now());
@@ -217,14 +230,18 @@ class _CalendarMemoState extends State<CalendarMemo> {
         memoTextFocus.unfocus();
       });
       var memo = await MemoDao(GetIt.I<DbHelper>())
-          .findDayMemoByWriteTime(selectedDay, MemoType.ateFood);
+          .findDayMemoByWriteTime(selectedDay, MemoType.all);
       if (memo.isEmpty) {
         setState(() {
           _memoController.text = '';
+          dropdownList.clear();
         });
       } else {
         setState(() {
-          _memoController.text = "";
+          _memoController.text = context.read<CalendarProvider>().memoType.name;
+          dropdownList = memo.map((e) {
+            return e?.memo ?? "";
+          }).toList();
         });
       }
 
