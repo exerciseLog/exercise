@@ -30,8 +30,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
-  List<String> dropdownList = ['데드리프트', '벤치프레스', '스쿼트 10세트 80\n 레그프레스 5세트 60'];
-  String selectedDropdown = '데드리프트';
+  List<String> dropdownList = [];
 
   final _memoController = TextEditingController();
 
@@ -115,9 +114,10 @@ class _CalendarMemoState extends State<CalendarMemo> {
             maxLines: 3,
             controller: _memoController,
           ),
-          Container(
-            height: 100,
+          SizedBox(
+            height: 60,
             child: ListView.builder(
+              padding: EdgeInsets.zero,
               itemCount: dropdownList.length,
               itemBuilder: (BuildContext context, int index) {
                 return ExpansionTile(
@@ -154,6 +154,14 @@ class _CalendarMemoState extends State<CalendarMemo> {
     return OutlinedButton(
         onPressed: () {
           context.read<CalendarProvider>().memoType = memoTypeMapper(value);
+          setState(() {
+            _memoController.text = context.read<CalendarProvider>().memoType.name;
+            if (dropdownList.isNotEmpty) {
+              //todo :: dropdownList 데이터 형 map으로 memotype 가지면 좋을듯
+              dropdownList.map((e) => e.length);
+            }
+
+          }
         },
         child: Text(value));
   }
