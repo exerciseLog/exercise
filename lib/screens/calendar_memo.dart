@@ -30,7 +30,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
-  List<String> dropdownList = [];
+  Map<MemoType, String> dropdownList = {};
 
   final _memoController = TextEditingController();
 
@@ -121,10 +121,15 @@ class _CalendarMemoState extends State<CalendarMemo> {
               itemCount: dropdownList.length,
               itemBuilder: (BuildContext context, int index) {
                 return ExpansionTile(
-                    title: dropdownList[index].length > 9
-                        ? Text(dropdownList[index].substring(0, 10))
-                        : Text(dropdownList[index]),
-                    children: [memoField(dropdownList[index])]);
+                    title: dropdownList.entries.toList()[index].value.length > 9
+                        ? Text(dropdownList.entries
+                            .toList()[index]
+                            .value
+                            .substring(0, 10))
+                        : Text(dropdownList.entries.toList()[index].value),
+                    children: [
+                      memoField(dropdownList.entries.toList()[index].value)
+                    ]);
               },
             ),
           ),
@@ -152,15 +157,24 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   Widget memoTypeButton(String value) {
     return OutlinedButton(
-        onPressed: () {
+        onPressed: () async {
           context.read<CalendarProvider>().memoType = memoTypeMapper(value);
-          setState(() {
-            _memoController.text = context.read<CalendarProvider>().memoType.name;
-            if (dropdownList.isNotEmpty) {
-              //todo :: dropdownList 데이터 형 map으로 memotype 가지면 좋을듯
-              dropdownList.map((e) => e.length);
-            }
 
+          var memo = await MemoDao(GetIt.I<DbHelper>()).findDayMemoByWriteTime(
+              _selectedDay ?? DateTime.now(), MemoType.all);
+          if (memo.isEmpty) {
+            setState(() {
+              _memoController.text = '';
+              dropdownList.clear();
+            });
+          } else {
+            setState(() {
+              _memoController.text =
+                  context.read<CalendarProvider>().memoType.name;
+              for (var i in memo) {
+                dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
+              }
+            });
           }
         },
         child: Text(value));
@@ -247,9 +261,9 @@ class _CalendarMemoState extends State<CalendarMemo> {
       } else {
         setState(() {
           _memoController.text = context.read<CalendarProvider>().memoType.name;
-          dropdownList = memo.map((e) {
-            return e?.memo ?? "";
-          }).toList();
+          for (var i in memo) {
+            dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
+          }
         });
       }
 
