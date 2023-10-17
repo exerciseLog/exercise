@@ -85,7 +85,7 @@ class PositionProvider with ChangeNotifier {
 
   _placeDetailDialog(String placeId, BuildContext context) async {
     var url = "https://maps.googleapis.com/maps/api/place/details/json?language=ko&place_id=$placeId&key=$apiKey";
-    dev.log(url);
+    
     get(Uri.parse(url)).then((value) {
       var body = jsonDecode(value.body);
       dev.log(body.toString());
@@ -100,6 +100,9 @@ class PositionProvider with ChangeNotifier {
             content: SingleChildScrollView(
               child: Column(
                 children: [
+                  Text(detail.name, 
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20) 
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

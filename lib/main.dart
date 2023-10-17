@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/provider/bmi_provider.dart';
@@ -13,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Called when Doing Background Work initiated from Widget
 @pragma("vm:entry-point")
@@ -51,13 +53,23 @@ class _MyAppState extends State<MyApp> {
     final database = DbHelper();
     GetIt.I.registerSingleton<DbHelper>(database);
     HomeWidget.registerBackgroundCallback(backgroundCallback);
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).then((value) {
+      FirebaseAuth.instance
+      .authStateChanges()
+      .listen((User? user) {
+        if (user == null) {
+          log('User is currently signed out!');
+        } else {
+          log('User is signed in!');
+        }
+      }); 
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ApiProvider>(

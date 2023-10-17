@@ -1,9 +1,10 @@
 
 class PlaceModel {
-  final String rating, number, delivery, openNow, openDetail;
+  final String name, rating, number, delivery, openNow, openDetail;
   
   PlaceModel.detailfromJson(Map<String, dynamic> json) 
-  : rating = json['result']['rating'].toString(),
+  : name = json['result']['name'],
+  rating = json['result']['rating'].toString(),
   number = json['result']['formatted_phone_number'] ?? '정보 없음',
   delivery = _confDelivery(json),
   openNow = _confOpenNow(json),

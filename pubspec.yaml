@@ -63,6 +63,8 @@ dependencies:
   firebase_database: ^10.2.5
   url_launcher: ^6.1.11
   google_place: ^0.4.7
+  firebase_auth: ^4.10.1
+  google_sign_in: ^6.1.5
   
 dev_dependencies:
   flutter_test:

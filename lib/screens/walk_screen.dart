@@ -22,7 +22,7 @@ class _BmiScreenState extends State<BmiScreen> {
   double _previousY = 0.0;
   double _weight = 0.0; // 체중 변수 추가
   double _height = 0.0; // 신장 변수 추가
-  double _targetWeight = 0.0; // 감량해야 할 체중 변수 추가
+  final double _targetWeight = 0.0; // 감량해야 할 체중 변수 추가
   late Database _database;
 
   @override
@@ -147,7 +147,7 @@ class _BmiScreenState extends State<BmiScreen> {
       if (bmi >= 23.0) {
         double normalWeight = 23.0 * heightInMeters * heightInMeters;
         double targetWeight = _weight - normalWeight;
-        return targetWeight.toStringAsFixed(1) + 'kg';
+        return '${targetWeight.toStringAsFixed(1)}kg';
       } else {
         return '';
       }
@@ -193,6 +193,7 @@ class _BmiScreenState extends State<BmiScreen> {
                 ),
                 TextField(
                   onChanged: (value) {
+                    if(value == '') value = '0';
                     bmiProvider.setHeight(value);
                     setState(() {
                       _height = double.tryParse(value) ?? 0.0;
@@ -217,7 +218,7 @@ class _BmiScreenState extends State<BmiScreen> {
                   onPressed: () {
                     _saveSteps();
                   },
-                  child: Text('걸음 수 저장'), // 걸음 수 저장 버튼
+                  child: const Text('걸음 수 저장'), // 걸음 수 저장 버튼
                 ),
               ],
             ),

@@ -9,6 +9,8 @@ import '../provider/calendar_provider.dart';
 import 'package:animations/animations.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:developer';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class TakeoutScreen extends StatefulWidget {
   const TakeoutScreen({super.key});
@@ -49,6 +51,23 @@ class _TakeoutScreenState extends State<TakeoutScreen> {
         "line1": "100 Mountain View"
       }
     }); */
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    // Once signed in, return the UserCredential
+    return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
   @override
@@ -169,7 +188,7 @@ class _TakeoutScreenState extends State<TakeoutScreen> {
           const SizedBox(height: 50),
           /* TextButton(
             onPressed: () {
-              test();
+              signInWithGoogle();
             },
             child: const Text("forTest")
           ), */

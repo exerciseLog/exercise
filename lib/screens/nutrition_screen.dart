@@ -22,8 +22,8 @@ class NutApiPage extends StatefulWidget {
 
 class _NutApiPageState extends State<NutApiPage> {
   static const _pageSize = 10;
-  TextEditingController apiCtrl = TextEditingController();
-  TextEditingController dlgCtrl = TextEditingController();
+  TextEditingController foodCtrl = TextEditingController();
+  TextEditingController madeCtrl = TextEditingController();
   final PagingController<int, NutApiModel> _pagingController = 
             PagingController(firstPageKey: 0);
 
@@ -103,43 +103,56 @@ class _NutApiPageState extends State<NutApiPage> {
                 children: [
                   Flexible(
                     flex: 3,
-                    child: TextFormField(
-                      controller: apiCtrl,
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.add_box_outlined),
-                        hintText: '음식 입력',
-                        iconColor: Color.fromARGB(200, 20, 20, 255)),
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: foodCtrl,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.menu_book),
+                            hintText: '음식명(필수)',
+                            iconColor: Color.fromARGB(200, 20, 20, 255)),
+                        ),
+                        TextFormField(
+                          controller: madeCtrl,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.store),
+                            hintText: '제조사명',
+                            iconColor: Color.fromARGB(200, 20, 20, 255)
+                          ),
+                        )
+                      ],
                     )
                   ),
+                  const SizedBox(width: 10),
                   Flexible(
                     flex: 1,
                     child: ElevatedButton(
                         onPressed: () async {
                           api.modifyBool();
-                          String foodName = apiCtrl.text;
-                            if (foodName == '') {
-                              ElegantNotification.error(
-                                    title: const Text("오류"),
-                                    description: const Text("검색할 음식을 입력해 주세요."))
-                                .show(context);
-                              api.modifyBool();
-                              return;
-                            }
+                          String foodName = foodCtrl.text;
+                          String madeName = madeCtrl.text;
+                          if (foodName == '') {
+                            ElegantNotification.error(
+                              title: const Text("오류"),
+                              description: const Text("검색할 음식을 입력해 주세요."))
+                            .show(context);
+                            api.modifyBool();
+                            return;
+                          }
                                                      
                           try {
-                            List<NutApiModel> resultList = await ApiService.getNutrition(foodName);
+                            List<NutApiModel> resultList = await ApiService.getNutrition(foodName, madeName);
                             api.setResult(resultList);
                             _pagingController.refresh();
                             
-                            apiCtrl.clear();
                             cal.resetList();
                           }
                           catch(err) {
                             _pagingController.error = err;
                             ElegantNotification.error(
-                                title: const Text("오류"),
-                                description: Text('$err'))
-                                .show(context);
+                              title: const Text("오류"),
+                              description: Text('$err'))
+                            .show(context);
                           }
                           finally {
                             api.modifyBool();
