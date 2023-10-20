@@ -11,7 +11,7 @@ class BmiScreen extends StatefulWidget {
 
   @override
   _BmiScreenState createState() =>
-      _BmiScreenState(); // MyHomePage 상태를 관리하는 _MyHomePageState 클래스 생성
+      _BmiScreenState();
 }
 
 class _BmiScreenState extends State<BmiScreen> {
@@ -19,10 +19,19 @@ class _BmiScreenState extends State<BmiScreen> {
   StreamSubscription<AccelerometerEvent>? _streamSubscription;
   int _steps = 0;
   double _previousY = 0.0;
-  double _weight = 0.0; // 체중 변수 추가
-  double _height = 0.0; // 신장 변수 추가
-  double _targetWeight = 0.0; // 감량해야 할 체중 변수 추가
+  double _weight = 0.0;
+  double _height = 0.0;
+  double _targetWeight = 0.0;
+  double caloriesBurned = 0.0;
   late Database _database;
+  String? selectedExercise;
+
+  List<String> exerciseOptions = [
+    '수영',
+    '자전거타기',
+    '달리기',
+    // 다른 운동 추가가능
+  ];
 
   @override
   void initState() {
@@ -35,10 +44,11 @@ class _BmiScreenState extends State<BmiScreen> {
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadSteps();
-    }
+  void dispose() {
+    super.dispose();
+    _streamSubscription?.cancel();
+    _saveSteps();
+    _database.close();
   }
 
   Future<Database> _openDatabase() async {
@@ -80,6 +90,7 @@ class _BmiScreenState extends State<BmiScreen> {
   }
 
   void _loadSteps() async {
+    //걸음수 와 현재 시각 저장
     final List<Map<String, dynamic>> data = await _database.query(
       'steps',
       orderBy: 'id DESC',
@@ -108,7 +119,6 @@ class _BmiScreenState extends State<BmiScreen> {
   }
 
   void _saveSteps() async {
-    //걸음수 와 현재 시각 저장
     await _database.transaction((txn) async {
       await txn.insert(
         'steps',
@@ -119,7 +129,7 @@ class _BmiScreenState extends State<BmiScreen> {
 
   String _calculateBMI() {
     // BMI 지수 계산  18.5~23사이는 정상 23~25과체중 25이상 비만 18.5 저체중
-    if (_height > 0.0) {
+    if (_height > 0.0 && _weight > 0.0) {
       double heightInMeters = _height / 100;
       double bmi = _weight / (heightInMeters * heightInMeters);
 
@@ -139,7 +149,7 @@ class _BmiScreenState extends State<BmiScreen> {
 
   String _calculateTargetWeight() {
     // 비만 또는 과체중일 경우 감량해야 할 체중 계산
-    if (_height > 0.0) {
+    if (_height > 0.0 && _weight > 0.0) {
       double heightInMeters = _height / 100;
       double bmi = _weight / (heightInMeters * heightInMeters);
 
@@ -155,19 +165,28 @@ class _BmiScreenState extends State<BmiScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    _streamSubscription?.cancel();
-    _saveSteps();
-    _database.close();
+  double calculateCalories() {
+    double calories = 0.0;
+
+    if (selectedExercise == '수영') {
+      double metValue = 11.0;
+      calories = ((metValue * 3.5 * _weight * 60.0) / 1000.0)*5;
+    } else if (selectedExercise == '자전거타기') {
+      double metValue = 5.5;
+      calories = ((metValue * 3.5 * _weight * 60.0) / 1000.0)*5;
+    } else if (selectedExercise == '달리기') {
+      double metValue = 10.0;
+      calories = ((metValue * 3.5 * _weight * 60.0) / 1000.0)*5.0;
+    }
+
+    return calories;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title), // 상단 앱바에 제목 표시
+        title: Text(widget.title),// 상단 앱바에 제목 표시
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -178,21 +197,18 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  const Text(
-                    '체중 (kg):', // 체중 입력 텍스트
-                  ),
+                  Text('체중 (kg):'),// 체중 입력 텍스트
                   TextField(
                     onChanged: (value) {
                       setState(() {
                         _weight = double.tryParse(value) ?? 0.0;
+                        caloriesBurned = calculateCalories();
                       });
                     },
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16.0),
-                  const Text(
-                    '신장 (cm):', // 신장 입력 텍스트
-                  ),
+                  Text('신장 (cm):'),// 신장 입력 텍스트
                   TextField(
                     onChanged: (value) {
                       setState(() {
@@ -207,18 +223,39 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  const Text(
-                    '걸음 수:', // 걸음 수 저장 버튼
+                  Text('운동 선택:'),
+                  DropdownButton<String>(
+                    value: selectedExercise,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedExercise = newValue;
+                        caloriesBurned = calculateCalories();
+                      });
+                    },
+                    items: exerciseOptions.map((String exercise) {
+                      return DropdownMenuItem<String>(
+                        value: exercise,
+                        child: Text(exercise),
+                      );
+                    }).toList(),
                   ),
+                ],
+              ),
+
+              const SizedBox(height: 16.0),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('걸음 수:'),
                   Text(
-                    '$_steps', // 현재 걸음 수
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    '$_steps',// 현재 걸음 수
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   ElevatedButton(
                     onPressed: () {
                       _saveSteps();
                     },
-                    child: Text('걸음 수 저장'), // 걸음 수 저장 버튼
+                    child: Text('걸음 수 저장'),// 걸음 수 저장 버튼
                   ),
                 ],
               ),
@@ -226,9 +263,7 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  const Text(
-                    'BMI 지수:', // BMI 지수 텍스트
-                  ),
+                  Text('BMI 지수:'),// BMI 지수 텍스트
                   Text(
                     _calculateBMI(),
                     style: Theme.of(context).textTheme.titleLarge,
@@ -238,11 +273,20 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  const Text(
-                    '감량해야 할 체중:', // 감량해야 할 체중 텍스트
-                  ),
+                  Text('감량해야 할 체중:'),
                   Text(
                     _calculateTargetWeight(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16.0),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('운동에 따른 시간당 칼로리 소모량:'),
+                  Text(
+                    '${calculateCalories().toStringAsFixed(2)} kcal',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
