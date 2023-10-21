@@ -250,6 +250,10 @@ class _BmiScreenState extends State<BmiScreen> {
                   Text(
                     '$_steps',// 현재 걸음 수
                     style: Theme.of(context).textTheme.titleLarge,
+                  ),Text('칼로리 소모량:'),
+                  Text(
+                      '${(_steps * 0.03).toStringAsFixed(2)} kcal',
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   ElevatedButton(
                     onPressed: () {
