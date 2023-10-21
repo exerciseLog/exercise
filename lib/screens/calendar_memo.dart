@@ -99,17 +99,19 @@ class _CalendarMemoState extends State<CalendarMemo> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              memoTypeButton(MemoType.all.buttonValue),
-              memoTypeButton(MemoType.ateFood.buttonValue),
-              memoTypeButton(MemoType.walk.buttonValue),
-              memoTypeButton(MemoType.exercise.buttonValue),
+              memoTypeButton(MemoType.all),
+              memoTypeButton(MemoType.ateFood),
+              memoTypeButton(MemoType.walk),
+              memoTypeButton(MemoType.exercise),
             ],
           ),
           TextField(
             focusNode: memoTextFocus,
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
-              labelText: '오늘의 ${_memoController.text}',
+              labelText: _memoController.text.isNotEmpty
+                  ? '오늘의 ${context.read<CalendarProvider>().memoType.buttonValue}'
+                  : "기록하기",
             ),
             maxLines: 3,
             controller: _memoController,
@@ -137,7 +139,11 @@ class _CalendarMemoState extends State<CalendarMemo> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               OutlinedButton(
-                onPressed: () => _memoSaved(context),
+                onPressed: () {
+                  context.read<CalendarProvider>().memoType != MemoType.all
+                      ? _memoSaved(context)
+                      : {};
+                },
                 child: const Text('저장'),
               ),
               Padding(
@@ -155,29 +161,32 @@ class _CalendarMemoState extends State<CalendarMemo> {
     );
   }
 
-  Widget memoTypeButton(String value) {
+  Widget memoTypeButton(MemoType memoType) {
     return OutlinedButton(
         onPressed: () async {
-          context.read<CalendarProvider>().memoType = memoTypeMapper(value);
-
-          var memo = await MemoDao(GetIt.I<DbHelper>()).findDayMemoByWriteTime(
-              _selectedDay ?? DateTime.now(), MemoType.all);
-          if (memo.isEmpty) {
-            setState(() {
-              _memoController.text = '';
-              dropdownList.clear();
-            });
-          } else {
-            setState(() {
-              _memoController.text =
-                  context.read<CalendarProvider>().memoType.name;
-              for (var i in memo) {
-                dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
-              }
-            });
-          }
+          reloadDropdownList(memoType);
         },
-        child: Text(value));
+        child: Text(memoType.buttonValue));
+  }
+
+  Future<void> reloadDropdownList(MemoType memoType) async {
+    context.read<CalendarProvider>().memoType = memoType;
+
+    var memo = await MemoDao(GetIt.I<DbHelper>())
+        .findDayMemoByWriteTime(_selectedDay ?? DateTime.now(), memoType);
+    if (memo.isEmpty) {
+      setState(() {
+        _memoController.text = '';
+        dropdownList.clear();
+      });
+    } else {
+      setState(() {
+        dropdownList.clear();
+        for (var i in memo) {
+          dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
+        }
+      });
+    }
   }
 
   bool isExerciseDay(DateTime day) {
@@ -196,10 +205,19 @@ class _CalendarMemoState extends State<CalendarMemo> {
         .read<CalendarProvider>()
         .addMemo(_selectedDay ?? DateTime.now(), _memoController.text);
     Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
+    reloadDropdownList(context.read<CalendarProvider>().memoType);
+    setState(() {
+      _memoController.text = '';
+    });
   }
 
   void _memoDelete(BuildContext context) {
     context.read<CalendarProvider>().deleteMemo(_selectedDay ?? DateTime.now());
+    dropdownList.clear();
+
+    setState(() {
+      dropdownList.clear();
+    });
     Fluttertoast.showToast(msg: '메모가 삭제되었습니다.');
   }
 
@@ -260,7 +278,8 @@ class _CalendarMemoState extends State<CalendarMemo> {
         });
       } else {
         setState(() {
-          _memoController.text = context.read<CalendarProvider>().memoType.name;
+          // _memoController.text =
+          //     context.read<CalendarProvider>().memoType.buttonValue;
           for (var i in memo) {
             dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
           }
