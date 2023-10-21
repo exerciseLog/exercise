@@ -25,6 +25,9 @@ class CalendarProvider with ChangeNotifier {
   }
 
   Future<void> addMemo(DateTime selectedDay, String memoText) async {
+    if (memoType == MemoType.all) {
+      memoType = MemoType.exercise;
+    }
     await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);
     var memoCompanion = MemoCompanion(
       writeTime: drift.Value(selectedDay),
