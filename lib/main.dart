@@ -1,9 +1,10 @@
 import 'package:exercise_log/model/enum/memo_type.dart';
+import 'dart:developer';
 import 'package:exercise_log/provider/api_provider.dart';
-import 'package:exercise_log/notifier/example_model.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/provider/bmi_provider.dart';
 import 'package:exercise_log/provider/calorie_provider.dart';
+import 'package:exercise_log/provider/position_provider.dart';
 import 'package:exercise_log/screens/home_screen.dart';
 import 'package:exercise_log/table/db_helper.dart';
 import 'package:exercise_log/table/memo_dao.dart';
@@ -13,6 +14,9 @@ import 'package:home_widget/home_widget.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Called when Doing Background Work initiated from Widget
 @pragma("vm:entry-point")
@@ -32,7 +36,7 @@ void backgroundCallback(Uri? data) async {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  initializeDateFormatting().then((_) => runApp(MyApp()));
+  initializeDateFormatting().then((_) => runApp(const MyApp()));
 }
 
 class MyApp extends StatefulWidget {
@@ -51,6 +55,17 @@ class _MyAppState extends State<MyApp> {
     final database = DbHelper();
     GetIt.I.registerSingleton<DbHelper>(database);
     HomeWidget.registerBackgroundCallback(backgroundCallback);
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).then((value) {
+      FirebaseAuth.instance.authStateChanges().listen((User? user) {
+        if (user == null) {
+          log('User is currently signed out!');
+        } else {
+          log('User is signed in!');
+        }
+      });
+    });
   }
 
   @override
@@ -68,6 +83,9 @@ class _MyAppState extends State<MyApp> {
         ),
         ChangeNotifierProvider<BmiProvider>(
           create: (BuildContext context) => BmiProvider(),
+        ),
+        ChangeNotifierProvider<PositionProvider>(
+          create: (BuildContext context) => PositionProvider(),
         ),
       ],
       child: const MaterialApp(

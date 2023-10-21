@@ -1,9 +1,9 @@
-import 'package:exercise_log/notifier/example_model.dart';
+import 'package:exercise_log/screens/map_screen.dart';
 import 'package:exercise_log/screens/nutrition_screen.dart';
 import 'package:exercise_log/screens/calendar_memo.dart';
 import 'package:exercise_log/screens/walk_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:animations/animations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const BmiScreen(
       title: 'BMI',
     ),
-    const CalendarMemo(),
+    const TakeoutScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -33,7 +33,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: null,
-      body: _widgetOptions[_selectedIndex],
+      body: PageTransitionSwitcher(
+        duration: const Duration(milliseconds: 1000),
+        transitionBuilder: (
+          Widget child,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+        ) {
+          return FadeThroughTransition(
+            animation: animation,
+            secondaryAnimation: secondaryAnimation,
+            child: child,
+          );
+        },
+        child: _widgetOptions[_selectedIndex],
+      ),
       bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(

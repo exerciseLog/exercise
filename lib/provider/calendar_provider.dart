@@ -1,4 +1,5 @@
 import 'package:exercise_log/model/enum/memo_type.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:drift/drift.dart' as drift;

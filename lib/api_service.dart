@@ -4,9 +4,9 @@ import 'package:exercise_log/model/nutrition_model.dart';
 
 class ApiService {
   static const String url =
-      "https://openapi.foodsafetykorea.go.kr/api/81084e1ce468417b9f5f/I2790/json/1/20";
+      "https://openapi.foodsafetykorea.go.kr/api/81084e1ce468417b9f5f/I2790/json/1/100";
 
-  static Future<List<NutApiModel>> getNutrition(String foodName) async {
+  static Future<List<NutApiModel>> getNutrition(String foodName, String madeName) async {
     List<NutApiModel> resList = [];
     final sendUrl = Uri.parse("$url/DESC_KOR=$foodName");
     final response = await http.get(sendUrl);
@@ -19,6 +19,9 @@ class ApiService {
       for (var result in results) {
         final instance = NutApiModel.fromJson(result);
         resList.add(instance);
+      }
+      if(madeName != '') {
+        resList.removeWhere((e) => !e.maker.contains(madeName));
       }
       return resList;
     }

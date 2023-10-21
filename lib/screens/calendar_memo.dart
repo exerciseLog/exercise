@@ -25,7 +25,8 @@ class _CalendarMemoState extends State<CalendarMemo> {
   FocusNode memoTextFocus = FocusNode();
   RangeSelectionMode _rangeSelectionMode = RangeSelectionMode
       .toggledOff; // Can be toggled on/off by longpressing a date
-  DateTime _focusedDay = DateTime.now();
+  DateTime _focusedDay = DateTime.utc(DateTime.now().year, DateTime.now().month, 
+                         DateTime.now().day, 00, 00);
   DateTime? _selectedDay;
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
@@ -39,9 +40,20 @@ class _CalendarMemoState extends State<CalendarMemo> {
     super.initState();
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       context.read<CalendarProvider>().getMemoHistory();
+      var memo =
+          await MemoDao(GetIt.I<DbHelper>()).findByWriteTime(_selectedDay!);
+      if (memo == null) {
+        setState(() {
+          _memoController.text = '';
+        });
+      } else {
+        setState(() {
+          _memoController.text = memo.memo;
+        });
+      }
+
     });
   }
 

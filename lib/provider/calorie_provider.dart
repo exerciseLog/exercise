@@ -4,21 +4,23 @@ class CalorieProvider with ChangeNotifier {
   double _calorie = 0.0;
   String _selectedFood = '';
   String _selectedCal = '';
-  int _selectedLnum = 0;
+  int _selectednum = 0;
   String _percent = '0';
   List<String> selectedFoodList = [];
   List<String> selectedCalList = [];
+  int _selectedNumList = 0;
 
   String get selectedFood => _selectedFood;
   String get selectedCal => _selectedCal;
   String get getCalorie => _calorie.toString();
-  int get listNum => _selectedLnum;
+  int get listNum => _selectednum;
+  int get selListNum => _selectedNumList;
   String get percent => _percent;
 
   setCalorie(String food, String cal, int num) {
     _selectedFood = food;
     _selectedCal = cal;
-    _selectedLnum = num;
+    _selectednum = num;
     notifyListeners();
   }
 
@@ -37,17 +39,30 @@ class CalorieProvider with ChangeNotifier {
 
   resetCalorie() {
     _calorie = 0.0;
-    _selectedLnum = 0;
+    _selectednum = 0;
     selectedFoodList.clear();
     selectedCalList.clear();
+    _selectedNumList = 0;
     notifyListeners();
   }
 
   resetList() {
-    _selectedLnum = 0;
+    _selectednum = 0;
     _selectedCal = '';
     notifyListeners();
   }
   
+  setSelectedList(int index) {
+    _selectedNumList = index;
+    notifyListeners();
+  }
+
+  deleteSelectedList() {
+    var dCal = double.parse(selectedCalList[_selectedNumList]);
+    _calorie -= dCal;
+    selectedFoodList.removeAt(_selectedNumList);
+    selectedCalList.removeAt(_selectedNumList);
+    notifyListeners();
+  }
     
 }
