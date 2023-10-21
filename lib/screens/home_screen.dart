@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("ExerciseLog")),
+      appBar: null,
       body: PageTransitionSwitcher(
         duration: const Duration(milliseconds: 1000),
         transitionBuilder: (

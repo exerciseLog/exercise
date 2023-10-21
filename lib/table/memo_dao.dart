@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:exercise_log/model/enum/memo_type.dart';
 import 'package:exercise_log/table/db_helper.dart';
 import 'package:exercise_log/table/memo.dart';
 import 'package:intl/intl.dart';
@@ -13,7 +14,7 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
     return (select(memo)..where((t) => t.id.equals(id))).getSingle();
   }
 
-  Future<MemoData?> findByWriteTime(DateTime writeTime) async {
+  Future<MemoData?> findFirstMemoByWriteTime(DateTime writeTime) async {
     var startYear = DateFormat('yyyy').format(writeTime);
     var startMonth = DateFormat('MM').format(writeTime);
     var startDay = DateFormat('dd').format(writeTime);
@@ -22,6 +23,33 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
               (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59'))))
           ..limit(1))
         .getSingleOrNull();
+  }
+
+  Future<List<MemoData?>> findDayMemoByWriteTime(
+      DateTime writeTime, MemoType memoType) async {
+    var startYear = DateFormat('yyyy').format(writeTime);
+    var startMonth = DateFormat('MM').format(writeTime);
+    var startDay = DateFormat('dd').format(writeTime);
+    var result = (select(memo)
+      ..where((t) => t.writeTime.isBetweenValues((writeTime),
+          (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59')))));
+    if (memoType != MemoType.all) {
+      result.where((tbl) => tbl.memoType.equals(memoType.name));
+    }
+    return result.get();
+  }
+
+  Future<int> deleteByWriteTime(DateTime writeTime, MemoType memoType) async {
+    var startYear = DateFormat('yyyy').format(writeTime);
+    var startMonth = DateFormat('MM').format(writeTime);
+    var startDay = DateFormat('dd').format(writeTime);
+    var result = (delete(memo)
+      ..where((t) => t.writeTime.isBetweenValues((writeTime),
+          (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59')))));
+    if (memoType != MemoType.all) {
+      result.where((tbl) => tbl.memoType.equals(memoType.name));
+    }
+    return await result.go();
   }
 
   Future<List<MemoData>> findMonthByWriteTime(DateTime writeTime) {
@@ -46,9 +74,9 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
         .write(MemoCompanion(modifyTime: Value(modifyTime)));
   }
 
-  Future<int> deleteByWriteTime(DateTime writeTime) {
-    return (delete(memo)..where((tbl) => tbl.writeTime.equals(writeTime))).go();
-  }
+  // Future<int> deleteByWriteTime(DateTime writeTime) {
+  //   return (delete(memo)..where((tbl) => tbl.writeTime.equals(writeTime))).go();
+  // }
 
   Future<int> deleteAll() async {
     return delete(memo).go();

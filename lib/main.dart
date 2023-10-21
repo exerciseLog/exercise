@@ -1,3 +1,4 @@
+import 'package:exercise_log/model/enum/memo_type.dart';
 import 'dart:developer';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
@@ -10,6 +11,7 @@ import 'package:exercise_log/table/memo_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:firebase_core/firebase_core.dart';
@@ -21,10 +23,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 void backgroundCallback(Uri? data) async {
   if (data?.host == 'titleclicked') {
     var memoCompanion = MemoCompanion(
-      writeTime: drift.Value(DateTime.now()),
-      memo: const drift.Value(''),
-      modifyTime: drift.Value(DateTime.now()),
-    );
+        writeTime: drift.Value(DateTime.now()),
+        memo: const drift.Value(''),
+        modifyTime: drift.Value(DateTime.now()),
+        memoType: drift.Value(MemoType.exercise.name));
     final database = DbHelper();
     await MemoDao(database).createMemo(
       memoCompanion,
@@ -34,7 +36,7 @@ void backgroundCallback(Uri? data) async {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  initializeDateFormatting().then((_) => runApp(const MyApp()));
 }
 
 class MyApp extends StatefulWidget {
@@ -56,15 +58,13 @@ class _MyAppState extends State<MyApp> {
     Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     ).then((value) {
-      FirebaseAuth.instance
-      .authStateChanges()
-      .listen((User? user) {
+      FirebaseAuth.instance.authStateChanges().listen((User? user) {
         if (user == null) {
           log('User is currently signed out!');
         } else {
           log('User is signed in!');
         }
-      }); 
+      });
     });
   }
 

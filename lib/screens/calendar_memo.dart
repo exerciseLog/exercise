@@ -1,3 +1,4 @@
+import 'package:exercise_log/model/enum/memo_type.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/screens/utils.dart';
 import 'package:exercise_log/table/db_helper.dart';
@@ -16,6 +17,8 @@ class CalendarMemo extends StatefulWidget {
   State<CalendarMemo> createState() => _CalendarMemoState();
 }
 
+//todo :: 페이지 최하단에 입력했던 운동 그대로 나오도록하고 옆으로 밀면 삭제 가능,
+//toso :: 걷기 & 칼로리 클릭시 메모 입력 창 가리기
 class _CalendarMemoState extends State<CalendarMemo> {
   late final ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
@@ -27,6 +30,8 @@ class _CalendarMemoState extends State<CalendarMemo> {
   DateTime? _selectedDay;
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
+
+  Map<MemoType, String> dropdownList = {};
 
   final _memoController = TextEditingController();
 
@@ -64,10 +69,13 @@ class _CalendarMemoState extends State<CalendarMemo> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          const SizedBox(
-            height: 40,
-          ),
           TableCalendar(
+            headerStyle: const HeaderStyle(
+              titleCentered: true,
+              formatButtonVisible: false,
+            ),
+            availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+            locale: 'ko_KR',
             firstDay: kFirstDay,
             lastDay: kLastDay,
             focusedDay: _focusedDay,
@@ -100,25 +108,88 @@ class _CalendarMemoState extends State<CalendarMemo> {
               _focusedDay = focusedDay;
             },
           ),
-          const SizedBox(
-            height: 30,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              memoTypeButton(MemoType.all.buttonValue),
+              memoTypeButton(MemoType.ateFood.buttonValue),
+              memoTypeButton(MemoType.walk.buttonValue),
+              memoTypeButton(MemoType.exercise.buttonValue),
+            ],
           ),
           TextField(
             focusNode: memoTextFocus,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: '오늘의 운동',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: '오늘의 ${_memoController.text}',
             ),
-            maxLines: 10,
+            maxLines: 3,
             controller: _memoController,
           ),
-          OutlinedButton(
-            onPressed: () => _memoSaved(context),
-            child: const Text('저장'),
+          SizedBox(
+            height: 60,
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: dropdownList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ExpansionTile(
+                    title: dropdownList.entries.toList()[index].value.length > 9
+                        ? Text(dropdownList.entries
+                            .toList()[index]
+                            .value
+                            .substring(0, 10))
+                        : Text(dropdownList.entries.toList()[index].value),
+                    children: [
+                      memoField(dropdownList.entries.toList()[index].value)
+                    ]);
+              },
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              OutlinedButton(
+                onPressed: () => _memoSaved(context),
+                child: const Text('저장'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: OutlinedButton(
+                  onPressed: () => _memoDelete(context),
+                  child: const Text('삭제',
+                      style: TextStyle(color: Colors.redAccent)),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Widget memoTypeButton(String value) {
+    return OutlinedButton(
+        onPressed: () async {
+          context.read<CalendarProvider>().memoType = memoTypeMapper(value);
+
+          var memo = await MemoDao(GetIt.I<DbHelper>()).findDayMemoByWriteTime(
+              _selectedDay ?? DateTime.now(), MemoType.all);
+          if (memo.isEmpty) {
+            setState(() {
+              _memoController.text = '';
+              dropdownList.clear();
+            });
+          } else {
+            setState(() {
+              _memoController.text =
+                  context.read<CalendarProvider>().memoType.name;
+              for (var i in memo) {
+                dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
+              }
+            });
+          }
+        },
+        child: Text(value));
   }
 
   bool isExerciseDay(DateTime day) {
@@ -137,6 +208,11 @@ class _CalendarMemoState extends State<CalendarMemo> {
         .read<CalendarProvider>()
         .addMemo(_selectedDay ?? DateTime.now(), _memoController.text);
     Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
+  }
+
+  void _memoDelete(BuildContext context) {
+    context.read<CalendarProvider>().deleteMemo(_selectedDay ?? DateTime.now());
+    Fluttertoast.showToast(msg: '메모가 삭제되었습니다.');
   }
 
   @override
@@ -159,6 +235,16 @@ class _CalendarMemoState extends State<CalendarMemo> {
     ];
   }
 
+  Widget memoField(String value) {
+    return TextField(
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: value,
+      ),
+      maxLines: 3,
+    );
+  }
+
   // Future<void> getMonthMemo(BuildContext context) async {
   //   var memoList =
   //       await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(DateTime.now());
@@ -177,16 +263,19 @@ class _CalendarMemoState extends State<CalendarMemo> {
         _rangeSelectionMode = RangeSelectionMode.toggledOff;
         memoTextFocus.unfocus();
       });
-      var memo =
-          await MemoDao(GetIt.I<DbHelper>()).findByWriteTime(selectedDay);
-      if (memo == null) {
+      var memo = await MemoDao(GetIt.I<DbHelper>())
+          .findDayMemoByWriteTime(selectedDay, MemoType.all);
+      if (memo.isEmpty) {
         setState(() {
           _memoController.text = '';
+          dropdownList.clear();
         });
-        Fluttertoast.showToast(msg: '해당 날짜에 저장된 기록이 없습니다.');
       } else {
         setState(() {
-          _memoController.text = memo.memo;
+          _memoController.text = context.read<CalendarProvider>().memoType.name;
+          for (var i in memo) {
+            dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
+          }
         });
       }
 
