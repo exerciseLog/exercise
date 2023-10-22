@@ -123,12 +123,11 @@ class _CalendarMemoState extends State<CalendarMemo> {
               itemCount: dropdownList.length,
               itemBuilder: (BuildContext context, int index) {
                 return ExpansionTile(
-                    title: dropdownList.entries.toList()[index].value.length > 9
-                        ? Text(dropdownList.entries
-                            .toList()[index]
-                            .value
-                            .substring(0, 10))
-                        : Text(dropdownList.entries.toList()[index].value),
+                    title: Text(dropdownList.entries
+                        .toList()[index]
+                        .value
+                        .split('\n')
+                        .first),
                     children: [
                       memoField(dropdownList.entries.toList()[index].value)
                     ]);
@@ -163,6 +162,16 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   Widget memoTypeButton(MemoType memoType) {
     return OutlinedButton(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.pressed)) {
+              return Colors.white;
+            }
+            return context.read<CalendarProvider>().memoType != memoType
+                ? Colors.white
+                : Colors.black26;
+          }),
+        ),
         onPressed: () async {
           reloadDropdownList(memoType);
         },
@@ -243,6 +252,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   Widget memoField(String value) {
     return TextField(
+      enabled: false,
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         labelText: value,
