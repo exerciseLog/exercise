@@ -162,6 +162,16 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   Widget memoTypeButton(MemoType memoType) {
     return OutlinedButton(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.pressed)) {
+              return Colors.white;
+            }
+            return context.read<CalendarProvider>().memoType != memoType
+                ? Colors.white
+                : Colors.black26;
+          }),
+        ),
         onPressed: () async {
           reloadDropdownList(memoType);
         },
