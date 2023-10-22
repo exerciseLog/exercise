@@ -24,7 +24,7 @@ void backgroundCallback(Uri? data) async {
   if (data?.host == 'titleclicked') {
     var memoCompanion = MemoCompanion(
         writeTime: drift.Value(DateTime.now()),
-        memo: const drift.Value(''),
+        memo: const drift.Value('운동완료'),
         modifyTime: drift.Value(DateTime.now()),
         memoType: drift.Value(MemoType.exercise.name));
     final database = DbHelper();
