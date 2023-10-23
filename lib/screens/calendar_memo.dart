@@ -31,8 +31,6 @@ class _CalendarMemoState extends State<CalendarMemo> {
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
-  Map<MemoType, String> dropdownList = {};
-
   final _memoController = TextEditingController();
 
   @override
@@ -120,16 +118,24 @@ class _CalendarMemoState extends State<CalendarMemo> {
             height: 60,
             child: ListView.builder(
               padding: EdgeInsets.zero,
-              itemCount: dropdownList.length,
+              itemCount: context.read<CalendarProvider>().dropdownList.length,
               itemBuilder: (BuildContext context, int index) {
                 return ExpansionTile(
-                    title: Text(dropdownList.entries
+                    title: Text(context
+                        .read<CalendarProvider>()
+                        .dropdownList
+                        .entries
                         .toList()[index]
                         .value
                         .split('\n')
                         .first),
                     children: [
-                      memoField(dropdownList.entries.toList()[index].value)
+                      memoField(context
+                          .read<CalendarProvider>()
+                          .dropdownList
+                          .entries
+                          .toList()[index]
+                          .value)
                     ]);
               },
             ),
@@ -186,13 +192,15 @@ class _CalendarMemoState extends State<CalendarMemo> {
     if (memo.isEmpty) {
       setState(() {
         _memoController.text = '';
-        dropdownList.clear();
+        context.read<CalendarProvider>().dropdownList.clear();
       });
     } else {
       setState(() {
-        dropdownList.clear();
+        context.read<CalendarProvider>().dropdownList.clear();
         for (var i in memo) {
-          dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
+          context
+              .read<CalendarProvider>()
+              .dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
         }
       });
     }
@@ -222,10 +230,10 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   void _memoDelete(BuildContext context) {
     context.read<CalendarProvider>().deleteMemo(_selectedDay ?? DateTime.now());
-    dropdownList.clear();
+    context.read<CalendarProvider>().dropdownList.clear();
 
     setState(() {
-      dropdownList.clear();
+      context.read<CalendarProvider>().dropdownList.clear();
     });
     Fluttertoast.showToast(msg: '메모가 삭제되었습니다.');
   }
@@ -284,14 +292,17 @@ class _CalendarMemoState extends State<CalendarMemo> {
       if (memo.isEmpty) {
         setState(() {
           _memoController.text = '';
-          dropdownList.clear();
+          context.read<CalendarProvider>().dropdownList.clear();
         });
       } else {
         setState(() {
           // _memoController.text =
           //     context.read<CalendarProvider>().memoType.buttonValue;
           for (var i in memo) {
-            dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
+            context
+                    .read<CalendarProvider>()
+                    .dropdownList[memoTypeMapper(i?.memoType ?? "")] =
+                i?.memo ?? "";
           }
         });
       }

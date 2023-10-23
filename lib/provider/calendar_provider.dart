@@ -15,6 +15,8 @@ class CalendarProvider with ChangeNotifier {
 
   List<DateTime> get memoHistory => _memo.keys.toList();
 
+  Map<MemoType, String> dropdownList = {};
+
   Future<void> getMemoHistory() async {
     var memoList =
         await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(DateTime.now());
