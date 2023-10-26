@@ -2,6 +2,7 @@ import 'package:exercise_log/screens/map_screen.dart';
 import 'package:exercise_log/screens/nutrition_screen.dart';
 import 'package:exercise_log/screens/calendar_memo.dart';
 import 'package:exercise_log/screens/walk_screen.dart';
+import 'package:exercise_log/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:animations/animations.dart';
 
@@ -21,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
       title: 'BMI',
     ),
     const TakeoutScreen(),
+    const ChatScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -65,6 +67,10 @@ class _HomeScreenState extends State<HomeScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.fastfood),
               label: '포장주문',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.login),
+              label: '채팅',
             ),
           ],
           currentIndex: _selectedIndex,
