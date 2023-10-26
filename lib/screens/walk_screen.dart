@@ -185,10 +185,10 @@ class _BmiScreenState extends State<BmiScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),// 상단 앱바에 제목 표시
-      ),
+      appBar: null,// 상단 앱바 삭제 및 상단패딩20
+
       body: SingleChildScrollView(
+        padding: EdgeInsets.only(top: 100.0),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
