@@ -1,5 +1,4 @@
 import 'package:exercise_log/model/enum/memo_type.dart';
-import 'dart:developer';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/provider/bmi_provider.dart';
@@ -58,9 +57,9 @@ class _MyAppState extends State<MyApp> {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return MyHome();
+            return const MyHome();
           }
-          return LoginSignupScreen();
+          return const LoginSignupScreen();
         },
       ),
     );
@@ -79,8 +78,10 @@ class _MyHomeState extends State<MyHome> {
   @override
   void initState() {
     super.initState();
-    final database = DbHelper();
-    GetIt.I.registerSingleton<DbHelper>(database);
+    if(!GetIt.I.isRegistered<DbHelper>()){
+      final database = DbHelper();
+      GetIt.I.registerSingleton<DbHelper>(database);
+    }
     HomeWidget.registerBackgroundCallback(backgroundCallback);
     // Firebase.initializeApp(
     //   options: DefaultFirebaseOptions.currentPlatform,

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:exercise_log/add_image/add_image.dart';
 import 'package:exercise_log/config/palette.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:exercise_log/screens/chat_screen.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -68,19 +67,19 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                 left: 0,
                 child: Container(
                   height: 300,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     image: DecorationImage(
                         image: AssetImage('image/blue.png'), fit: BoxFit.fill),
                   ),
                   child: Container(
-                    padding: EdgeInsets.only(top: 90, left: 20),
+                    padding: const EdgeInsets.only(top: 90, left: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         RichText(
                           text: TextSpan(
                             text: 'Welcome',
-                            style: TextStyle(
+                            style: const TextStyle(
                                 letterSpacing: 1.0,
                                 fontSize: 25,
                                 color: Colors.white),
@@ -89,7 +88,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                 text: isSignupScreen
                                     ? ' to Exercise_Log'
                                     : ' back',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   letterSpacing: 1.0,
                                   fontSize: 25,
                                   color: Colors.white,
@@ -99,7 +98,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             ],
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 5.0,
                         ),
                         Text(
@@ -107,7 +106,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                               //? 'Signup to continue'
                               ? 'Signup to continue'
                               : 'Signin to continue',
-                          style: TextStyle(
+                          style: const TextStyle(
                             letterSpacing: 1.0,
                             color: Colors.white,
                           ),
@@ -119,16 +118,16 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               ),
               //배경
               AnimatedPositioned(
-                duration: Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 500),
                 curve: Curves.easeIn,
                 top: 180,
                 child: AnimatedContainer(
-                  duration: Duration(milliseconds: 500),
+                  duration: const Duration(milliseconds: 500),
                   curve: Curves.easeIn,
-                  padding: EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.all(20.0),
                   height: isSignupScreen ? 280.0 : 250.0,
                   width: MediaQuery.of(context).size.width - 40,
-                  margin: EdgeInsets.symmetric(horizontal: 20.0),
+                  margin: const EdgeInsets.symmetric(horizontal: 20.0),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15.0),
@@ -140,7 +139,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                     ],
                   ),
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.only(bottom: 20),
                     child: Column(
                       children: [
                         Row(
@@ -165,10 +164,10 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   ),
                                   if (!isSignupScreen)
                                     Container(
-                                      margin: EdgeInsets.only(top: 3),
+                                      margin: const EdgeInsets.only(top: 3),
                                       height: 2,
                                       width: 55,
-                                      color: Color.fromARGB(255, 85, 102, 255),
+                                      color: const Color.fromARGB(255, 85, 102, 255),
                                     )
                                 ],
                               ),
@@ -192,7 +191,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                                 ? Palette.activeColor
                                                 : Palette.textColor1),
                                       ),
-                                      SizedBox(
+                                      const SizedBox(
                                         width: 15,
                                       ),
                                       if (isSignupScreen)
@@ -212,11 +211,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   if (isSignupScreen)
                                     Container(
                                         margin:
-                                            EdgeInsets.fromLTRB(0, 3, 35, 0),
+                                            const EdgeInsets.fromLTRB(0, 3, 35, 0),
                                         height: 2,
                                         width: 55,
                                         color:
-                                            Color.fromARGB(255, 85, 102, 255))
+                                            const Color.fromARGB(255, 85, 102, 255))
                                 ],
                               ),
                             )
@@ -224,13 +223,13 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                         ),
                         if (isSignupScreen)
                           Container(
-                            margin: EdgeInsets.only(top: 20),
+                            margin: const EdgeInsets.only(top: 20),
                             child: Form(
                               key: _formKey,
                               child: Column(
                                 children: [
                                   TextFormField(
-                                    key: ValueKey(1),
+                                    key: const ValueKey(1),
                                     validator: (value) {
                                       if (value!.isEmpty || value.length < 4) {
                                         //return 'Please enter at least 4 characters';
@@ -244,7 +243,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     onChanged: (value) {
                                       userName = value;
                                     },
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                         prefixIcon: Icon(
                                           Icons.account_circle,
                                           color: Palette.iconColor,
@@ -269,12 +268,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                             color: Palette.textColor1),
                                         contentPadding: EdgeInsets.all(10)),
                                   ),
-                                  SizedBox(
+                                  const SizedBox(
                                     height: 8,
                                   ),
                                   TextFormField(
                                     keyboardType: TextInputType.emailAddress,
-                                    key: ValueKey(2),
+                                    key: const ValueKey(2),
                                     validator: (value) {
                                       if (value!.isEmpty ||
                                           !value.contains('@')) {
@@ -288,7 +287,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     onChanged: (value) {
                                       userEmail = value;
                                     },
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                         prefixIcon: Icon(
                                           Icons.email,
                                           color: Palette.iconColor,
@@ -313,12 +312,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                             color: Palette.textColor1),
                                         contentPadding: EdgeInsets.all(10)),
                                   ),
-                                  SizedBox(
+                                  const SizedBox(
                                     height: 8,
                                   ),
                                   TextFormField(
                                     obscureText: true,
-                                    key: ValueKey(3),
+                                    key: const ValueKey(3),
                                     validator: (value) {
                                       if (value!.isEmpty || value.length < 6) {
                                         return '비밀번호를 6자리 이상 입력해 주세요.';
@@ -331,7 +330,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     onChanged: (value) {
                                       userPassword = value;
                                     },
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                         prefixIcon: Icon(
                                           Icons.lock,
                                           color: Palette.iconColor,
@@ -362,13 +361,13 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                           ),
                         if (!isSignupScreen)
                           Container(
-                            margin: EdgeInsets.only(top: 20),
+                            margin: const EdgeInsets.only(top: 20),
                             child: Form(
                               key: _formKey,
                               child: Column(
                                 children: [
                                   TextFormField(
-                                    key: ValueKey(4),
+                                    key: const ValueKey(4),
                                     validator: (value) {
                                       if (value!.isEmpty ||
                                           !value.contains('@')) {
@@ -382,7 +381,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     onChanged: (value) {
                                       userEmail = value;
                                     },
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                         prefixIcon: Icon(
                                           Icons.email,
                                           color: Palette.iconColor,
@@ -407,12 +406,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                             color: Palette.textColor1),
                                         contentPadding: EdgeInsets.all(10)),
                                   ),
-                                  SizedBox(
+                                  const SizedBox(
                                     height: 8.0,
                                   ),
                                   TextFormField(
                                     obscureText: true,
-                                    key: ValueKey(5),
+                                    key: const ValueKey(5),
                                     validator: (value) {
                                       if (value!.isEmpty || value.length < 6) {
                                         return '비밀번호를 6자리 이상 입력해 주세요.';
@@ -425,7 +424,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     onChanged: (value) {
                                       userPassword = value;
                                     },
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                         prefixIcon: Icon(
                                           Icons.lock,
                                           color: Palette.iconColor,
@@ -461,14 +460,14 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               ),
               //텍스트 폼 필드
               AnimatedPositioned(
-                duration: Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 500),
                 curve: Curves.easeIn,
                 top: isSignupScreen ? 430 : 390,
                 right: 0,
                 left: 0,
                 child: Center(
                   child: Container(
-                    padding: EdgeInsets.all(15),
+                    padding: const EdgeInsets.all(15),
                     height: 90,
                     width: 90,
                     decoration: BoxDecoration(
@@ -486,7 +485,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             });
 
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content: Text('우측상단 이미지 버튼을 통해 이미지를 입력해 주세요.'),
                                 backgroundColor: Colors.blue,
                               ),
@@ -505,7 +504,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             final refImage = FirebaseStorage.instance
                                 .ref()
                                 .child('picked_image')
-                                .child(newUser.user!.uid + '.png');
+                                .child('${newUser.user!.uid}.png');
 
                             await refImage.putFile(userPickedImage!);
                             final url = await refImage.getDownloadURL();
@@ -526,10 +525,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) {
-                                    return HomeScreen();
+                                    return const HomeScreen();
                                   },
                                 ),
                               );
+                              
                               setState(() {
                                 showSpinner = false;
                               });
@@ -538,7 +538,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             print(e);
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text('이메일과 비밀번호를 다시 한번 확인해주세요.'),
                                   backgroundColor: Colors.blue,
                                 ),
@@ -567,21 +567,26 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                               //     },
                               //   ),
                               // );
+
+                              if(context.mounted) {
+                                setState(() {
+                                  showSpinner = false;
+                                });
+                              }
+                            }
+                          } catch (e) {
+                            print(e);
+                            if(context.mounted) {
                               setState(() {
                                 showSpinner = false;
                               });
                             }
-                          } catch (e) {
-                            print(e);
-                            setState(() {
-                              showSpinner = false;
-                            });
                           }
                         }
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                               //colors: [Colors.orange, Colors.red],
                               colors: [
                                 Color.fromARGB(255, 85, 102, 255),
@@ -595,11 +600,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                               color: Colors.black.withOpacity(0.3),
                               spreadRadius: 1,
                               blurRadius: 1,
-                              offset: Offset(0, 1),
+                              offset: const Offset(0, 1),
                             ),
                           ],
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.arrow_forward,
                           color: Colors.white,
                         ),
@@ -610,7 +615,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               ),
               //전송버튼
               AnimatedPositioned(
-                duration: Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 500),
                 curve: Curves.easeIn,
                 top: isSignupScreen
                     ? MediaQuery.of(context).size.height - 185
@@ -620,19 +625,18 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                 child: Column(
                   children: [
                     Text(isSignupScreen ? 'or Signup with' : 'or Signin with'),
-                    SizedBox(
+                    const SizedBox(
                       height: 10,
                     ),
                     TextButton.icon(
                       onPressed: () {},
                       style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          minimumSize: Size(155, 40),
+                          foregroundColor: Colors.white, minimumSize: const Size(155, 40),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20)),
                           backgroundColor: Palette.googleColor),
-                      icon: Icon(Icons.add),
-                      label: Text('Google'),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Google'),
                     ),
                   ],
                 ),
