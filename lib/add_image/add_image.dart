@@ -15,16 +15,16 @@ class AddImage extends StatefulWidget {
 class _AddImageState extends State<AddImage> {
   File? pickedImage;
 
-  void _pickImage() async {
+  void _pickImage(ImageSource imageSource) async {
     final imagePicker = ImagePicker();
     final pickedImageFile = await imagePicker.pickImage(
-        source: ImageSource.camera, imageQuality: 50, maxHeight: 150);
+        source: imageSource, imageQuality: 50, maxHeight: 150);
     setState(() {
       if (pickedImageFile != null) {
         pickedImage = File(pickedImageFile.path);
       }
     });
-    widget.addImageFunc(pickedImage!);
+    // widget.addImageFunc(pickedImage!);
   }
 
   @override
@@ -35,21 +35,24 @@ class _AddImageState extends State<AddImage> {
       height: 300,
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.blue,
-            backgroundImage:
-                pickedImage != null ? FileImage(pickedImage!) : null,
+          InkWell(
+            onTap: () => _pickImage(ImageSource.camera),
+            child: CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.blue,
+              backgroundImage:
+                  pickedImage != null ? FileImage(pickedImage!) : null,
+            ),
           ),
           SizedBox(
             height: 10,
           ),
           OutlinedButton.icon(
             onPressed: () {
-              _pickImage();
+              _pickImage(ImageSource.gallery);
             },
             icon: Icon(Icons.image),
-            label: Text('이미치 추가'),
+            label: Text('갤러리 이미지 추가'),
           ),
           SizedBox(
             height: 80,
