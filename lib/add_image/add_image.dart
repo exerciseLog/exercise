@@ -22,9 +22,11 @@ class _AddImageState extends State<AddImage> {
     setState(() {
       if (pickedImageFile != null) {
         pickedImage = File(pickedImageFile.path);
+        if (pickedImage != null) {
+          widget.addImageFunc(pickedImage!);
+        }
       }
     });
-    // widget.addImageFunc(pickedImage!);
   }
 
   @override
