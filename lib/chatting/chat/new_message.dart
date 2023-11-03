@@ -4,7 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 class NewMessage extends StatefulWidget {
-  const NewMessage({Key? key}) : super(key: key);
+  final String chatId;
+  
+  const NewMessage({
+    super.key,
+    required this.chatId,
+  });
 
   @override
   _NewMessageState createState() => _NewMessageState();
@@ -20,7 +25,7 @@ class _NewMessageState extends State<NewMessage> {
         .collection('user')
         .doc(user!.uid)
         .get();
-    FirebaseFirestore.instance.collection('chat').add({
+    FirebaseFirestore.instance.collection('newchat/${widget.chatId}/chat').add({
       'text': _userEnterMessage,
       'time': DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
       'userID': user.uid,
@@ -34,8 +39,8 @@ class _NewMessageState extends State<NewMessage> {
   Widget build(BuildContext context) {
     return Container(
       // height: MediaQuery.of(context).size.height * 0.07,
-      color: Color.fromARGB(255, 233, 232, 232),
-      margin: EdgeInsets.only(top: 10),
+      color: const Color.fromARGB(255, 233, 232, 232),
+      margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(10),
       child: Row(
         children: [

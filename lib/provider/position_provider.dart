@@ -1,15 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exercise_log/model/place_model.dart';
+import 'package:exercise_log/screens/chat_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:http/http.dart';
+import 'package:intl/intl.dart';
 import 'dart:math';
 import 'dart:developer' as dev;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:animations/animations.dart';
 
 class PositionProvider with ChangeNotifier {
   static String apiKey = "AIzaSyDmOFlGdyiX02ZHhgVgxkaARUJhoGDoSNs";
@@ -88,7 +93,6 @@ class PositionProvider with ChangeNotifier {
     
     get(Uri.parse(url)).then((value) {
       var body = jsonDecode(value.body);
-      dev.log(body.toString());
       var detail = PlaceModel.detailfromJson(body);
       var rating = detail.rating == 'null' ? '정보 없음' : detail.rating;
       
@@ -138,8 +142,68 @@ class PositionProvider with ChangeNotifier {
                 child: const Text("전화 연결")
               ),
               TextButton(
-                onPressed: () {
-                  Fluttertoast.showToast(msg: '준비 중입니다.');
+                onPressed: () async {
+                  var user = FirebaseAuth.instance.currentUser;
+                  var uid = user!.uid;
+                  var db = FirebaseFirestore.instance;
+                  final userData = await db
+                    .collection('user')
+                    .doc(uid)
+                    .get();
+                  var userName = userData.data()!['userName'];
+                  var userImage = userData['picked_image'];
+                  var opName = detail.name;
+                  db.collection('newchat').where("member", arrayContains: userName).get().then(
+                    (values) {
+                      if(values.size != 0) {
+                        return showModal(
+                          context: context,
+                          configuration: const FadeScaleTransitionConfiguration(
+                            transitionDuration: Duration(milliseconds: 300),
+                            reverseTransitionDuration: Duration(milliseconds: 150)),
+                          builder: (dlgContext) {
+                            return AlertDialog(
+                              title: const Text('안내'),
+                              content: SingleChildScrollView(
+                                child: Column(
+                                  children: const [
+                                    Text('완료되지 않은 채팅 주문 내역이 있습니다.'),
+                                    Text('새 주문 요청을 하시겠습니까?')
+                                  ]
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    for(var value in values.docs) {
+                                      dev.log('${value.id} => ${value.data()}');
+                                      db.collection('newchat').doc(value.id).delete();
+                                    }
+                                    _createChat(db, uid, userName, userImage, opName, context);
+                                    
+                                  },
+                                  child: const Text('예')
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Fluttertoast.showToast(msg: '채팅 주문을 취소하였습니다.');
+                                    Navigator.pop(dlgContext);
+                                  },
+                                  child: const Text('아니오')
+                                )
+                              ],
+                            );
+                          }
+                        );
+                      }
+                      else {
+                        _createChat(db, uid, userName, userImage, opName, context);
+                      }
+                    }
+                  );
+
+                  
                 },
                 child: const Text("채팅으로 연결")
               )
@@ -148,6 +212,24 @@ class PositionProvider with ChangeNotifier {
         }
       );
     });
+  }
+
+  _createChat(FirebaseFirestore db, String uid, dynamic userName, dynamic userImage,
+   String opName, BuildContext context) {
+    var chatId = userName + ' : ' + DateTime.now().toString();
+      db.collection('newchat').doc(chatId).set({
+        'member': [userName, opName]
+      });    
+      db.collection('newchat').doc(chatId)
+      .collection('chat').doc().set({
+        'text': "주문 요청입니다!",
+        'time': DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
+        'userID': uid,
+        'userName': userName,
+        'userImage': userImage
+      }).then((value) => Navigator.push(context, 
+        MaterialPageRoute(builder: (context) => ChatScreen(chatId: chatId))
+      ));
   }
   
   positionInit(Completer<GoogleMapController> mapController) {

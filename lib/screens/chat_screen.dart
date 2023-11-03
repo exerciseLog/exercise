@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exercise_log/chatting/chat/message.dart';
 import 'package:exercise_log/chatting/chat/new_message.dart';
-import 'package:exercise_log/screens/home_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+  final String chatId;
+  const ChatScreen({
+    super.key,
+    required this.chatId,
+  });
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -14,6 +16,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _authentication = FirebaseAuth.instance;
+  
   User? loggedUser;
 
   @override
@@ -39,18 +42,19 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat screen'),
-        backgroundColor: Color(0xFF9bbbd4),
+        title: const Text('Chat screen'),
+        backgroundColor: const Color(0xFF9bbbd4),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_sharp, color: Colors.black54),
           onPressed: () {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => HomeScreen()));
+            /* Navigator.push(
+                context, MaterialPageRoute(builder: (context) => const HomeScreen())); */
+            Navigator.pop(context);
           },
         ),
         actions: [
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.exit_to_app_sharp,
               color: Colors.blue,
             ),
@@ -61,14 +65,14 @@ class _ChatScreenState extends State<ChatScreen> {
           )
         ],
       ),
-      backgroundColor: Color(0xFF9bbbd4),
+      backgroundColor: const Color(0xFF9bbbd4),
       body: Container(
         child: Column(
           children: [
             Expanded(
-              child: Messages(),
+              child: Messages(chatId: widget.chatId),
             ),
-            NewMessage(),
+            NewMessage(chatId: widget.chatId),
           ],
         ),
       ),

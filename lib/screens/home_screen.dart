@@ -22,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
       title: 'BMI',
     ),
     const TakeoutScreen(),
-    const ChatScreen(),
+    const ChatScreen(chatId: 'fromHome'),
   ];
 
   void _onItemTapped(int index) {
