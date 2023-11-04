@@ -82,4 +82,20 @@ class CalendarProvider with ChangeNotifier {
     });
     notifyListeners();
   }
+
+  Future<void> reloadDropdownList(MemoType Type, DateTime dateTime) async {
+    memoType = Type;
+
+    var memo = await MemoDao(GetIt.I<DbHelper>())
+        .findDayMemoByWriteTime(dateTime, memoType);
+    if (memo.isEmpty) {
+      dropdownList.clear();
+    } else {
+      dropdownList.clear();
+      for (var i in memo) {
+        dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
+      }
+    }
+    notifyListeners();
+  }
 }
