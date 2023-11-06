@@ -54,7 +54,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
     return ChangeNotifierProvider<CalendarProvider>(
         create: (context) => CalendarProvider(),
         builder: (context, child) {
-          var dropdownList = context.watch<CalendarProvider>().dropdownList;
+          var dropdownList = context.read<CalendarProvider>().dropdownList;
           return SingleChildScrollView(
             child: Column(
               children: [
