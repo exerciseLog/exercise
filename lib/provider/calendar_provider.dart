@@ -6,9 +6,12 @@ import 'package:drift/drift.dart' as drift;
 import '../screens/utils.dart';
 import '../table/db_helper.dart';
 import '../table/memo_dao.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CalendarProvider with ChangeNotifier {
   final Map<DateTime, MemoData> _memo = {};
+  
   MemoType memoType = MemoType.exercise;
 
   Map<DateTime, MemoData> get getMonthMemo => _memo;
@@ -16,6 +19,29 @@ class CalendarProvider with ChangeNotifier {
   List<DateTime> get memoHistory => _memo.keys.toList();
 
   Map<MemoType, String> dropdownList = {};
+
+  Future<void> addMemo(DateTime selectedDay, String memoText) async {
+    if (memoType == MemoType.all) {
+      memoType = MemoType.exercise;
+    }
+    final strSelectedDay = selectedDay.toString();
+    final user = FirebaseAuth.instance.currentUser;
+    final userData = await FirebaseFirestore.instance
+      .collection('user')
+      .doc(user!.uid)
+      .get();
+    FirebaseFirestore.instance
+      .collection('calendar/${user.uid}/${memoType.name}')
+      .doc('data')
+      .set({
+        'text': memoText,
+        'userID': user.uid,
+        'userName': userData.data()!['userName'],
+        'selectedDay': selectedDay,
+        'memoType': memoType.name,
+    });
+    notifyListeners();
+  }
 
   Future<void> getMemoHistory() async {
     var memoList =
@@ -26,31 +52,31 @@ class CalendarProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addMemo(DateTime selectedDay, String memoText) async {
-    if (memoType == MemoType.all) {
-      memoType = MemoType.exercise;
-    }
-    await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);
-    var memoCompanion = MemoCompanion(
-      writeTime: drift.Value(selectedDay),
-      memo: drift.Value(memoText),
-      modifyTime: drift.Value(DateTime.now()),
-      memoType: drift.Value(memoType.name),
-    );
+  // Future<void> addMemo(DateTime selectedDay, String memoText) async {
+  //   if (memoType == MemoType.all) {
+  //     memoType = MemoType.exercise;
+  //   }
+  //   await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);
+  //   var memoCompanion = MemoCompanion(
+  //     writeTime: drift.Value(selectedDay),
+  //     memo: drift.Value(memoText),
+  //     modifyTime: drift.Value(DateTime.now()),
+  //     memoType: drift.Value(memoType.name),
+  //   );
 
-    await MemoDao(GetIt.I<DbHelper>()).createMemo(
-      memoCompanion,
-    );
-    _memo.addAll({
-      selectedDay: MemoData(
-          id: -1,
-          writeTime: selectedDay,
-          memo: memoText,
-          modifyTime: DateTime.now(),
-          memoType: memoType.name)
-    });
-    notifyListeners();
-  }
+  //   await MemoDao(GetIt.I<DbHelper>()).createMemo(
+  //     memoCompanion,
+  //   );
+  //   _memo.addAll({
+  //     selectedDay: MemoData(
+  //         id: -1,
+  //         writeTime: selectedDay,
+  //         memo: memoText,
+  //         modifyTime: DateTime.now(),
+  //         memoType: memoType.name)
+  //   });
+  //   notifyListeners();
+  // }
 
   Future<void> deleteMemo(DateTime selectedDay) async {
     await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);

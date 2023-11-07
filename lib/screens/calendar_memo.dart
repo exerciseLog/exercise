@@ -9,6 +9,8 @@ import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CalendarMemo extends StatefulWidget {
   const CalendarMemo({super.key});
@@ -186,9 +188,18 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   Future<void> reloadDropdownList(MemoType memoType) async {
     context.read<CalendarProvider>().memoType = memoType;
-
-    var memo = await MemoDao(GetIt.I<DbHelper>())
-        .findDayMemoByWriteTime(_selectedDay ?? DateTime.now(), memoType);
+    final user = FirebaseAuth.instance.currentUser;
+    final userData = await FirebaseFirestore.instance
+      .collection('user')
+      .doc(user!.uid)
+      .get();
+    final memo = FirebaseFirestore.instance
+      .collection('calendar/${user.uid}/${memoType.name}')
+      .doc('data')
+      .get();
+    print(memo);
+    // var memo = await MemoDao(GetIt.I<DbHelper>())
+    //     .findDayMemoByWriteTime(_selectedDay ?? DateTime.now(), memoType);
     if (memo.isEmpty) {
       setState(() {
         _memoController.text = '';
