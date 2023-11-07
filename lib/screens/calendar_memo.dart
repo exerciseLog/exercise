@@ -187,20 +187,27 @@ class _CalendarMemoState extends State<CalendarMemo> {
   }
 
   Future<void> reloadDropdownList(MemoType memoType) async {
+    List<MemoData?> memoData = [];
     context.read<CalendarProvider>().memoType = memoType;
     final user = FirebaseAuth.instance.currentUser;
     final userData = await FirebaseFirestore.instance
-      .collection('user')
-      .doc(user!.uid)
-      .get();
-    final memo = FirebaseFirestore.instance
-      .collection('calendar/${user.uid}/${memoType.name}')
-      .doc('data')
-      .get();
-    print(memo);
-    // var memo = await MemoDao(GetIt.I<DbHelper>())
-    //     .findDayMemoByWriteTime(_selectedDay ?? DateTime.now(), memoType);
-    if (memo.isEmpty) {
+        .collection('user')
+        .doc(user!.uid)
+        .get();
+    CollectionReference memo = await FirebaseFirestore.instance
+        .collection('calendar/${user.uid}/${memoType.name}');
+    QuerySnapshot eventsQuery = await memo.get();
+    eventsQuery.docs.forEach((document) {
+      memoData.add(MemoData(
+        memoType: document["memoType"],
+        id: 0,
+        memo: document["text"],
+        modifyTime: DateTime.now(),
+        writeTime: DateTime.now(),
+      ));
+    });
+
+    if (memoData.isEmpty) {
       setState(() {
         _memoController.text = '';
         context.read<CalendarProvider>().dropdownList.clear();
@@ -208,7 +215,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
     } else {
       setState(() {
         context.read<CalendarProvider>().dropdownList.clear();
-        for (var i in memo) {
+        for (var i in memoData) {
           context
               .read<CalendarProvider>()
               .dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
