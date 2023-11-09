@@ -203,10 +203,9 @@ class _CalendarMemoState extends State<CalendarMemo> {
         id: 0,
         memo: document["text"],
         modifyTime: DateTime.now(),
-        writeTime: DateTime.now(),
+        writeTime: document["selectedDay"].toDate(),
       ));
     });
-
     if (memoData.isEmpty) {
       setState(() {
         _memoController.text = '';
