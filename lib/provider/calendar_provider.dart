@@ -19,7 +19,7 @@ class CalendarProvider with ChangeNotifier {
   List<DateTime> get memoHistory => _memo.keys.toList();
 
   Map<MemoType, String> dropdownList = {};
-
+  
   Future<void> addMemo(DateTime selectedDay, String memoText) async {
     if (memoType == MemoType.all) {
       memoType = MemoType.exercise;
@@ -79,9 +79,19 @@ class CalendarProvider with ChangeNotifier {
   // }
 
   Future<void> deleteMemo(DateTime selectedDay) async {
-    await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);
-
-    _memo.removeWhere((key, value) => isEqualsDay(selectedDay, key));
+   if (memoType == MemoType.all) {
+      memoType = MemoType.exercise;
+    }
+    final strSelectedDay = selectedDay.toString();
+    final user = FirebaseAuth.instance.currentUser;
+    final userData = await FirebaseFirestore.instance
+      .collection('user')
+      .doc(user!.uid)
+      .get();
+    FirebaseFirestore.instance
+      .collection('calendar/${user.uid}/${memoType.name}')
+      .doc('data')
+      .delete();
     notifyListeners();
   }
 
