@@ -104,14 +104,17 @@ class _CalendarMemoState extends State<CalendarMemo> {
             itemCount: provider.dropdownList.length,
             itemBuilder: (BuildContext context, int index) {
               return ExpansionTile(
-                  title: Text(provider.dropdownList.entries
-                      .toList()[index]
+                  title: Text(provider.dropdownList[index].entries
+                      .toList()
+                      .first
                       .value
                       .split('\n')
                       .first),
                   children: [
-                    memoField(
-                        provider.dropdownList.entries.toList()[index].value)
+                    memoField(provider.dropdownList[index].entries
+                        .toList()
+                        .first
+                        .value)
                   ]);
             },
           ),
@@ -284,25 +287,30 @@ class _CalendarMemoState extends State<CalendarMemo> {
         _rangeSelectionMode = RangeSelectionMode.toggledOff;
         memoTextFocus.unfocus();
       });
-      var memo = await MemoDao(GetIt.I<DbHelper>())
-          .findDayMemoByWriteTime(selectedDay, MemoType.all);
-      if (memo.isEmpty) {
-        setState(() {
-          _memoController.text = '';
-          context.read<CalendarProvider>().dropdownList.clear();
-        });
-      } else {
-        setState(() {
-          // _memoController.text =
-          //     context.read<CalendarProvider>().memoType.buttonValue;
-          for (var i in memo) {
-            context
-                    .read<CalendarProvider>()
-                    .dropdownList[memoTypeMapper(i?.memoType ?? "")] =
-                i?.memo ?? "";
-          }
-        });
-      }
+      // var memo = await MemoDao(GetIt.I<DbHelper>())
+      //     .findDayMemoByWriteTime(selectedDay, MemoType.all);
+
+      context
+          .read<CalendarProvider>()
+          .reloadDropdownList(MemoType.all, selectedDay);
+      context.read<CalendarProvider>().resetMemoType();
+      // if (memo.isEmpty) {
+      //   setState(() {
+      //     _memoController.text = '';
+      //     context.read<CalendarProvider>().dropdownList.clear();
+      //   });
+      // } else {
+      //   setState(() {
+      //     // _memoController.text =
+      //     //     context.read<CalendarProvider>().memoType.buttonValue;
+      //     for (var i in memo) {
+      //       context
+      //               .read<CalendarProvider>()
+      //               .dropdownList[memoTypeMapper(i?.memoType ?? "")] =
+      //           i?.memo ?? "";
+      //     }
+      //   });
+      // }
 
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }

@@ -15,7 +15,7 @@ class CalendarProvider with ChangeNotifier {
 
   List<DateTime> get memoHistory => _memo.keys.toList();
 
-  Map<MemoType, String> dropdownList = {};
+  List<Map<MemoType, String>> dropdownList = [];
 
   Future<void> getMemoHistory() async {
     var memoList =
@@ -30,11 +30,14 @@ class CalendarProvider with ChangeNotifier {
     if (memoType == MemoType.all) {
       memoType = MemoType.exercise;
     }
-    await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);
+    // await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);
+    DateTime modifyTime = DateTime.now();
+    DateTime writeTime = DateTime(selectedDay.year, selectedDay.month,
+        selectedDay.day, modifyTime.hour, modifyTime.minute, modifyTime.second);
     var memoCompanion = MemoCompanion(
-      writeTime: drift.Value(selectedDay),
+      writeTime: drift.Value(writeTime),
       memo: drift.Value(memoText),
-      modifyTime: drift.Value(DateTime.now()),
+      modifyTime: drift.Value(modifyTime),
       memoType: drift.Value(memoType.name),
     );
 
@@ -61,7 +64,7 @@ class CalendarProvider with ChangeNotifier {
 
   Future<void> finishTodayExercise() async {
     var today = DateTime.now();
-    await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(today, memoType);
+    // await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(today, memoType);
     var memoCompanion = MemoCompanion(
       writeTime: drift.Value(today),
       memo: const drift.Value(''),
@@ -93,9 +96,14 @@ class CalendarProvider with ChangeNotifier {
     } else {
       dropdownList.clear();
       for (var i in memo) {
-        dropdownList[memoTypeMapper(i?.memoType ?? "")] = i?.memo ?? "";
+        dropdownList.add({memoTypeMapper(i?.memoType ?? ""): i?.memo ?? ""});
       }
     }
+    notifyListeners();
+  }
+
+  Future<void> resetMemoType() async {
+    memoType = MemoType.all;
     notifyListeners();
   }
 }
