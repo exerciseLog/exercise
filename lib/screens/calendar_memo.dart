@@ -51,119 +51,131 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<CalendarProvider>(
-        create: (context) => CalendarProvider(),
-        builder: (context, child) {
-          var dropdownList = context.read<CalendarProvider>().dropdownList;
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                TableCalendar(
-                  headerStyle: const HeaderStyle(
-                    titleCentered: true,
-                    formatButtonVisible: false,
-                  ),
-                  availableCalendarFormats: const {
-                    CalendarFormat.month: 'Month'
-                  },
-                  locale: 'ko_KR',
-                  firstDay: kFirstDay,
-                  lastDay: kLastDay,
-                  focusedDay: _focusedDay,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  rangeStartDay: _rangeStart,
-                  rangeEndDay: _rangeEnd,
-                  calendarFormat: _calendarFormat,
-                  rangeSelectionMode: _rangeSelectionMode,
-                  eventLoader: (day) {
-                    return isExerciseDay(day) ? [1] : [];
-                  },
-                  startingDayOfWeek: StartingDayOfWeek.monday,
-                  calendarStyle: const CalendarStyle(
-                      // Use `CalendarStyle` to customize the UI
-                      outsideDaysVisible: false,
-                      markerDecoration: BoxDecoration(
-                        color: Color(0xffF67098),
-                        shape: BoxShape.circle,
-                      )),
-                  onDaySelected: _onDaySelected,
-                  onRangeSelected: _onRangeSelected,
-                  onFormatChanged: (format) {
-                    if (_calendarFormat != format) {
-                      setState(() {
-                        _calendarFormat = format;
-                      });
-                    }
-                  },
-                  onPageChanged: (focusedDay) {
-                    _focusedDay = focusedDay;
-                  },
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    memoTypeButton(MemoType.all),
-                    memoTypeButton(MemoType.ateFood),
-                    memoTypeButton(MemoType.walk),
-                    memoTypeButton(MemoType.exercise),
-                  ],
-                ),
-                TextField(
-                  focusNode: memoTextFocus,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: _memoController.text.isNotEmpty
-                        ? '오늘의 ${context.read<CalendarProvider>().memoType.buttonValue}'
-                        : "기록하기",
-                  ),
-                  maxLines: 3,
-                  controller: _memoController,
-                ),
-                SizedBox(
-                  height: 60,
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: dropdownList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ExpansionTile(
-                          title: Text(dropdownList.entries
-                              .toList()[index]
-                              .value
-                              .split('\n')
-                              .first),
-                          children: [
-                            memoField(
-                                dropdownList.entries.toList()[index].value)
-                          ]);
-                    },
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () {
-                        context.read<CalendarProvider>().memoType !=
-                                MemoType.all
-                            ? _memoSaved(context)
-                            : {};
-                      },
-                      child: const Text('저장'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: OutlinedButton(
-                        onPressed: () => _memoDelete(context),
-                        child: const Text('삭제',
-                            style: TextStyle(color: Colors.redAccent)),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          calendarWidget(),
+          memoTypeButtonWidget(),
+          TextField(
+            focusNode: memoTextFocus,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: _memoController.text.isNotEmpty
+                  ? '오늘의 ${context.read<CalendarProvider>().memoType.buttonValue}'
+                  : "기록하기",
             ),
-          );
-        });
+            maxLines: 3,
+            controller: _memoController,
+          ),
+          memoList(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              OutlinedButton(
+                onPressed: () {
+                  context.read<CalendarProvider>().memoType != MemoType.all
+                      ? _memoSaved(context)
+                      : {};
+                },
+                child: const Text('저장'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: OutlinedButton(
+                  onPressed: () => _memoDelete(context),
+                  child: const Text('삭제',
+                      style: TextStyle(color: Colors.redAccent)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget memoList() {
+    return Consumer<CalendarProvider>(
+      builder: (context, provider, child) {
+        return SizedBox(
+          height: 60,
+          child: ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: provider.dropdownList.length,
+            itemBuilder: (BuildContext context, int index) {
+              return ExpansionTile(
+                  title: Text(provider.dropdownList.entries
+                      .toList()[index]
+                      .value
+                      .split('\n')
+                      .first),
+                  children: [
+                    memoField(
+                        provider.dropdownList.entries.toList()[index].value)
+                  ]);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget memoTypeButtonWidget() {
+    return Consumer<CalendarProvider>(builder: (context, provider, child) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          memoTypeButton(MemoType.all),
+          memoTypeButton(MemoType.ateFood),
+          memoTypeButton(MemoType.walk),
+          memoTypeButton(MemoType.exercise),
+        ],
+      );
+    });
+  }
+
+  Widget calendarWidget() {
+    return Consumer<CalendarProvider>(builder: (context, provider, child) {
+      return TableCalendar(
+        headerStyle: const HeaderStyle(
+          titleCentered: true,
+          formatButtonVisible: false,
+        ),
+        availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+        locale: 'ko_KR',
+        firstDay: kFirstDay,
+        lastDay: kLastDay,
+        focusedDay: _focusedDay,
+        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+        rangeStartDay: _rangeStart,
+        rangeEndDay: _rangeEnd,
+        calendarFormat: _calendarFormat,
+        rangeSelectionMode: _rangeSelectionMode,
+        eventLoader: (day) {
+          return isExerciseDay(day) ? [1] : [];
+        },
+        startingDayOfWeek: StartingDayOfWeek.monday,
+        calendarStyle: const CalendarStyle(
+            // Use `CalendarStyle` to customize the UI
+            outsideDaysVisible: false,
+            markerDecoration: BoxDecoration(
+              color: Color(0xffF67098),
+              shape: BoxShape.circle,
+            )),
+        onDaySelected: _onDaySelected,
+        onRangeSelected: _onRangeSelected,
+        onFormatChanged: (format) {
+          if (_calendarFormat != format) {
+            setState(() {
+              _calendarFormat = format;
+            });
+          }
+        },
+        onPageChanged: (focusedDay) {
+          _focusedDay = focusedDay;
+        },
+      );
+    });
   }
 
   Widget memoTypeButton(MemoType memoType) {
