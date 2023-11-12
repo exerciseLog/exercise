@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "379439740902",
+    "firebase_url": "https://exerlog-dy-default-rtdb.firebaseio.com",
+    "project_id": "exerlog-dy",
+    "storage_bucket": "exerlog-dy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379439740902:android:4ef542205c233786068827",
+        "android_client_info": {
+          "package_name": "com.example.exercise_log"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "379439740902-u60a77osd0coqpphstg4a1ngc8a5bhtr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLfrut4geuL49gDT_5-39OvtzSvUOB6w4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "379439740902-u60a77osd0coqpphstg4a1ngc8a5bhtr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "379439740902-8r8p4h2gild5mc1v9qp736ji6e9pln3t.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.exerciseLog"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

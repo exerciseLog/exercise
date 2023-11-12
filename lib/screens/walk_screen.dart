@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class BmiScreen extends StatefulWidget {
   const BmiScreen({Key? key, required this.title}) : super(key: key);
@@ -11,7 +10,7 @@ class BmiScreen extends StatefulWidget {
 
   @override
   _BmiScreenState createState() =>
-      _BmiScreenState();
+      _BmiScreenState(); // MyHomePage 상태를 관리하는 _MyHomePageState 클래스 생성
 }
 
 class _BmiScreenState extends State<BmiScreen> {
@@ -21,7 +20,7 @@ class _BmiScreenState extends State<BmiScreen> {
   double _previousY = 0.0;
   double _weight = 0.0;
   double _height = 0.0;
-  double _targetWeight = 0.0;
+  final double _targetWeight = 0.0;
   double caloriesBurned = 0.0;
   late Database _database;
   String? selectedExercise;
@@ -47,8 +46,7 @@ class _BmiScreenState extends State<BmiScreen> {
   void dispose() {
     super.dispose();
     _streamSubscription?.cancel();
-    _saveSteps();
-    _database.close();
+    _saveSteps().then((value) => _database.close());
   }
 
   Future<Database> _openDatabase() async {
@@ -118,7 +116,8 @@ class _BmiScreenState extends State<BmiScreen> {
     }
   }
 
-  void _saveSteps() async {
+  Future<void> _saveSteps() async {
+    //걸음수 와 현재 시각 저장
     await _database.transaction((txn) async {
       await txn.insert(
         'steps',
@@ -156,7 +155,7 @@ class _BmiScreenState extends State<BmiScreen> {
       if (bmi >= 23.0) {
         double normalWeight = 23.0 * heightInMeters * heightInMeters;
         double targetWeight = _weight - normalWeight;
-        return targetWeight.toStringAsFixed(1) + 'kg';
+        return '${targetWeight.toStringAsFixed(1)}kg';
       } else {
         return '';
       }
@@ -197,7 +196,7 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text('체중 (kg):'),// 체중 입력 텍스트
+                  const Text('체중 (kg):'),// 체중 입력 텍스트
                   TextField(
                     onChanged: (value) {
                       setState(() {
@@ -208,7 +207,7 @@ class _BmiScreenState extends State<BmiScreen> {
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16.0),
-                  Text('신장 (cm):'),// 신장 입력 텍스트
+                  const Text('신장 (cm):'),// 신장 입력 텍스트
                   TextField(
                     onChanged: (value) {
                       setState(() {
@@ -223,7 +222,7 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text('운동 선택:'),
+                  const Text('운동 선택:'),
                   DropdownButton<String>(
                     value: selectedExercise,
                     onChanged: (String? newValue) {
@@ -246,7 +245,7 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text('걸음 수:'),
+                  const Text('걸음 수:'),
                   Text(
                     '$_steps',// 현재 걸음 수
                     style: Theme.of(context).textTheme.titleLarge,
@@ -259,7 +258,7 @@ class _BmiScreenState extends State<BmiScreen> {
                     onPressed: () {
                       _saveSteps();
                     },
-                    child: Text('걸음 수 저장'),// 걸음 수 저장 버튼
+                    child: const Text('걸음 수 저장'),// 걸음 수 저장 버튼
                   ),
                 ],
               ),
@@ -267,7 +266,7 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text('BMI 지수:'),// BMI 지수 텍스트
+                  const Text('BMI 지수:'),// BMI 지수 텍스트
                   Text(
                     _calculateBMI(),
                     style: Theme.of(context).textTheme.titleLarge,
@@ -277,7 +276,7 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text('감량해야 할 체중:'),
+                  const Text('감량해야 할 체중:'),
                   Text(
                     _calculateTargetWeight(),
                     style: Theme.of(context).textTheme.titleLarge,
@@ -288,7 +287,7 @@ class _BmiScreenState extends State<BmiScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text('운동에 따른 시간당 칼로리 소모량:'),
+                  const Text('운동에 따른 시간당 칼로리 소모량:'),
                   Text(
                     '${calculateCalories().toStringAsFixed(2)} kcal',
                     style: Theme.of(context).textTheme.titleLarge,
