@@ -24,7 +24,7 @@ class CalendarProvider with ChangeNotifier {
     for (var memo in memoList) {
       _memo.update(memo.writeTime, (value) => memo, ifAbsent: () => memo);
     }
-    notifyListeners();
+    reloadDropdownList(memoType, DateTime.now());
   }
 
   Future<void> addMemo(DateTime selectedDay, String memoText) async {

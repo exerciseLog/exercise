@@ -31,7 +31,8 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
     var startMonth = DateFormat('MM').format(writeTime);
     var startDay = DateFormat('dd').format(writeTime);
     var result = (select(memo)
-      ..where((t) => t.writeTime.isBetweenValues((writeTime),
+      ..where((t) => t.writeTime.isBetweenValues(
+          (DateTime.parse('$startYear-$startMonth-$startDay 00:00:00')),
           (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59')))));
     if (memoType != MemoType.all) {
       result.where((tbl) => tbl.memoType.equals(memoType.name));
