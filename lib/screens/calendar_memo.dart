@@ -51,23 +51,28 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            controller: _scroll,
-            child: Column(
-              children: [
-                calendarWidget(),
-                SizedBox(height: 50, child: memoTypeButtonWidget()),
-                SizedBox(height: 100, child: memoInputField()),
-                memoList(),
-              ],
+    return Scaffold(
+      body: SafeArea(
+        top: true,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _scroll,
+                child: Column(
+                  children: [
+                    calendarWidget(),
+                    SizedBox(height: 50, child: memoTypeButtonWidget()),
+                    SizedBox(height: 100, child: memoInputField()),
+                    memoList(),
+                  ],
+                ),
+              ),
             ),
-          ),
+            saveButton(),
+          ],
         ),
-        saveButton(),
-      ],
+      ),
     );
   }
 
