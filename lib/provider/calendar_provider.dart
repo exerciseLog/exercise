@@ -30,7 +30,6 @@ class CalendarProvider with ChangeNotifier {
     if (memoType == MemoType.all) {
       memoType = MemoType.exercise;
     }
-    // await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);
     DateTime modifyTime = DateTime.now();
     DateTime writeTime = DateTime(selectedDay.year, selectedDay.month,
         selectedDay.day, modifyTime.hour, modifyTime.minute, modifyTime.second);
@@ -64,7 +63,6 @@ class CalendarProvider with ChangeNotifier {
 
   Future<void> finishTodayExercise() async {
     var today = DateTime.now();
-    // await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(today, memoType);
     var memoCompanion = MemoCompanion(
       writeTime: drift.Value(today),
       memo: const drift.Value(''),

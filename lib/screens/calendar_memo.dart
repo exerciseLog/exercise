@@ -18,13 +18,11 @@ class CalendarMemo extends StatefulWidget {
 }
 
 //todo :: 페이지 최하단에 입력했던 운동 그대로 나오도록하고 옆으로 밀면 삭제 가능,
-//toso :: 걷기 & 칼로리 클릭시 메모 입력 창 가리기
 class _CalendarMemoState extends State<CalendarMemo> {
   late final ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   FocusNode memoTextFocus = FocusNode();
-  RangeSelectionMode _rangeSelectionMode = RangeSelectionMode
-      .toggledOff; // Can be toggled on/off by longpressing a date
+  RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOff;
   DateTime _focusedDay = DateTime.utc(
       DateTime.now().year, DateTime.now().month, DateTime.now().day, 00, 00);
   DateTime? _selectedDay;
@@ -245,12 +243,10 @@ class _CalendarMemoState extends State<CalendarMemo> {
   }
 
   List<Event> _getEventsForDay(DateTime day) {
-    // Implementation example
     return kEvents[day] ?? [];
   }
 
   List<Event> _getEventsForRange(DateTime start, DateTime end) {
-    // Implementation example
     final days = daysInRange(start, end);
 
     return [
@@ -269,14 +265,6 @@ class _CalendarMemoState extends State<CalendarMemo> {
     );
   }
 
-  // Future<void> getMonthMemo(BuildContext context) async {
-  //   var memoList =
-  //       await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(DateTime.now());
-  //   monthMemo = {for (var memo in memoList) memo.writeTime: memo};
-  //   Provider.of<CalendarProvider>(context, listen: false)
-  //       .setMonthMemo(monthMemo);
-  // }
-
   Future<void> _onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
@@ -287,31 +275,11 @@ class _CalendarMemoState extends State<CalendarMemo> {
         _rangeSelectionMode = RangeSelectionMode.toggledOff;
         memoTextFocus.unfocus();
       });
-      // var memo = await MemoDao(GetIt.I<DbHelper>())
-      //     .findDayMemoByWriteTime(selectedDay, MemoType.all);
 
       context
           .read<CalendarProvider>()
           .reloadDropdownList(MemoType.all, selectedDay);
       context.read<CalendarProvider>().resetMemoType();
-      // if (memo.isEmpty) {
-      //   setState(() {
-      //     _memoController.text = '';
-      //     context.read<CalendarProvider>().dropdownList.clear();
-      //   });
-      // } else {
-      //   setState(() {
-      //     // _memoController.text =
-      //     //     context.read<CalendarProvider>().memoType.buttonValue;
-      //     for (var i in memo) {
-      //       context
-      //               .read<CalendarProvider>()
-      //               .dropdownList[memoTypeMapper(i?.memoType ?? "")] =
-      //           i?.memo ?? "";
-      //     }
-      //   });
-      // }
-
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
   }
