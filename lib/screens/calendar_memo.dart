@@ -1,4 +1,5 @@
 import 'package:exercise_log/model/enum/memo_type.dart';
+import 'package:exercise_log/model/memo_model.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/screens/utils.dart';
 import 'package:exercise_log/table/db_helper.dart';
@@ -30,6 +31,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
   DateTime? _rangeEnd;
 
   final _memoController = TextEditingController();
+  final ScrollController _scroll = ScrollController();
 
   @override
   void initState() {
@@ -53,11 +55,12 @@ class _CalendarMemoState extends State<CalendarMemo> {
       children: [
         Expanded(
           child: SingleChildScrollView(
+            controller: _scroll,
             child: Column(
               children: [
                 calendarWidget(),
                 SizedBox(height: 50, child: memoTypeButtonWidget()),
-                SizedBox(height: 100, child: memoInputFiled()),
+                SizedBox(height: 100, child: memoInputField()),
                 memoList(),
               ],
             ),
@@ -72,26 +75,36 @@ class _CalendarMemoState extends State<CalendarMemo> {
     return Consumer<CalendarProvider>(
       builder: (context, provider, child) {
         return ListView.builder(
+          controller: _scroll,
           shrinkWrap: true,
           padding: EdgeInsets.zero,
           itemCount: provider.dropdownList.length,
           itemBuilder: (BuildContext context, int index) {
-            return SizedBox(
-              height: 70,
-              child: ExpansionTile(
-                  title: Text(provider.dropdownList[index].entries
-                      .toList()
-                      .first
-                      .value
-                      .split('\n')
-                      .first),
-                  children: [
-                    memoField(provider.dropdownList[index].entries
+            return ExpansionTile(
+                title: CheckboxListTile(
+                    title: Text(provider.dropdownList[index].entries
                         .toList()
                         .first
-                        .value)
-                  ]),
-            );
+                        .value
+                        .memo
+                        .split('\n')
+                        .first),
+                    contentPadding: const EdgeInsets.all(0),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: provider.dropdownList[index].entries
+                        .toList()
+                        .first
+                        .value
+                        .check,
+                    onChanged: (v) {
+                      context.read<CalendarProvider>().dropdownListCheck(index);
+                    }),
+                children: [
+                  memoField(provider.dropdownList[index].entries
+                      .toList()
+                      .first
+                      .value),
+                ]);
           },
         );
       },
@@ -194,23 +207,23 @@ class _CalendarMemoState extends State<CalendarMemo> {
   }
 
   Future<void> _memoSaved(BuildContext context) async {
-    await context
+    if (_memoController.text.isNotEmpty) {
+      await context
+          .read<CalendarProvider>()
+          .addMemo(_selectedDay ?? DateTime.now(), _memoController.text);
+      Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
+      await reloadDropdownList(context.read<CalendarProvider>().memoType);
+      setState(() {
+        _memoController.text = '';
+      });
+    }
+    context
         .read<CalendarProvider>()
-        .addMemo(_selectedDay ?? DateTime.now(), _memoController.text);
-    Fluttertoast.showToast(msg: '메모가 저장되었습니다.');
-    await reloadDropdownList(context.read<CalendarProvider>().memoType);
-    setState(() {
-      _memoController.text = '';
-    });
+        .updateMemo(_selectedDay ?? DateTime.now(), _memoController.text);
   }
 
   void _memoDelete(BuildContext context) {
     context.read<CalendarProvider>().deleteMemo(_selectedDay ?? DateTime.now());
-    context.read<CalendarProvider>().dropdownList.clear();
-
-    setState(() {
-      context.read<CalendarProvider>().dropdownList.clear();
-    });
     Fluttertoast.showToast(msg: '메모가 삭제되었습니다.');
   }
 
@@ -232,14 +245,19 @@ class _CalendarMemoState extends State<CalendarMemo> {
     ];
   }
 
-  Widget memoField(String value) {
+  Widget memoField(MemoModel memoModel) {
+    TextEditingController controller =
+        TextEditingController(text: memoModel.memo);
     return TextField(
-      enabled: false,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        labelText: value,
+      enabled: true,
+      controller: controller,
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
       ),
       maxLines: 3,
+      onChanged: (v) {
+        memoModel.memo = v;
+      },
     );
   }
 
@@ -304,7 +322,7 @@ class _CalendarMemoState extends State<CalendarMemo> {
     );
   }
 
-  Widget memoInputFiled() {
+  Widget memoInputField() {
     return TextField(
       focusNode: memoTextFocus,
       decoration: InputDecoration(
