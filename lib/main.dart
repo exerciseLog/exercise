@@ -1,5 +1,4 @@
 import 'package:exercise_log/model/enum/memo_type.dart';
-import 'dart:developer';
 import 'package:exercise_log/provider/api_provider.dart';
 import 'package:exercise_log/provider/calendar_provider.dart';
 import 'package:exercise_log/provider/bmi_provider.dart';
@@ -17,6 +16,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:exercise_log/screens/login_screen.dart';
 
 /// Called when Doing Background Work initiated from Widget
 @pragma("vm:entry-point")
@@ -34,8 +34,9 @@ void backgroundCallback(Uri? data) async {
   }
 }
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   initializeDateFormatting().then((_) => runApp(const MyApp()));
 }
 
@@ -47,25 +48,52 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Chatting app',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return const MyHome();
+          }
+          return const LoginSignupScreen();
+        },
+      ),
+    );
+  }
+}
 
+class MyHome extends StatefulWidget {
+  const MyHome({super.key});
+
+  @override
+  State<MyHome> createState() => _MyHomeState();
+}
+
+class _MyHomeState extends State<MyHome> {
+  //This widget is the root of your application.
   @override
   void initState() {
     super.initState();
-    final database = DbHelper();
-    GetIt.I.registerSingleton<DbHelper>(database);
+    if(!GetIt.I.isRegistered<DbHelper>()){
+      final database = DbHelper();
+      GetIt.I.registerSingleton<DbHelper>(database);
+    }
     HomeWidget.registerBackgroundCallback(backgroundCallback);
-    Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    ).then((value) {
-      FirebaseAuth.instance.authStateChanges().listen((User? user) {
-        if (user == null) {
-          log('User is currently signed out!');
-        } else {
-          log('User is signed in!');
-        }
-      });
-    });
+    // Firebase.initializeApp(
+    //   options: DefaultFirebaseOptions.currentPlatform,
+    // ).then((value) {
+    //   FirebaseAuth.instance.authStateChanges().listen((User? user) {
+    //     if (user == null) {
+    //       log('User is currently signed out!');
+    //     } else {
+    //       log('User is signed in!');
+    //     }
+    //   });
+    // });
   }
 
   @override
