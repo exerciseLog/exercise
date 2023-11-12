@@ -143,10 +143,18 @@ class _CalendarMemoState extends State<CalendarMemo> {
         _rangeEnd = null;
         _rangeSelectionMode = RangeSelectionMode.toggledOff;
         memoTextFocus.unfocus();
+
       });
+<<<<<<< Updated upstream
       var memo =
           await MemoDao(GetIt.I<DbHelper>()).findMonthByWriteTime(selectedDay);
       if (memo == null) {
+=======
+
+      var memo = await MemoDao(GetIt.I<DbHelper>())
+          .findDayMemoByWriteTime(selectedDay, MemoType.all);
+      if (memo.isEmpty) {
+>>>>>>> Stashed changes
         setState(() {
           _memoController.text = '';
         });
