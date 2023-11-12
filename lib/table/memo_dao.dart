@@ -31,7 +31,8 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
     var startMonth = DateFormat('MM').format(writeTime);
     var startDay = DateFormat('dd').format(writeTime);
     var result = (select(memo)
-      ..where((t) => t.writeTime.isBetweenValues((writeTime),
+      ..where((t) => t.writeTime.isBetweenValues(
+          (DateTime.parse('$startYear-$startMonth-$startDay 00:00:00')),
           (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59')))));
     if (memoType != MemoType.all) {
       result.where((tbl) => tbl.memoType.equals(memoType.name));
@@ -40,12 +41,7 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
   }
 
   Future<int> deleteByWriteTime(DateTime writeTime, MemoType memoType) async {
-    var startYear = DateFormat('yyyy').format(writeTime);
-    var startMonth = DateFormat('MM').format(writeTime);
-    var startDay = DateFormat('dd').format(writeTime);
-    var result = (delete(memo)
-      ..where((t) => t.writeTime.isBetweenValues((writeTime),
-          (DateTime.parse('$startYear-$startMonth-$startDay 23:59:59')))));
+    var result = (delete(memo)..where((t) => t.writeTime.equals((writeTime))));
     if (memoType != MemoType.all) {
       result.where((tbl) => tbl.memoType.equals(memoType.name));
     }
@@ -67,6 +63,11 @@ class MemoDao extends DatabaseAccessor<DbHelper> with _$MemoDaoMixin {
 
   Future<int> createMemo(MemoCompanion data) async {
     return await into(memo).insert(data);
+  }
+
+  Future<int> updateMemo(DateTime writeTime, String data) async {
+    return (update(memo)..where((t) => t.writeTime.equals(writeTime)))
+        .write(MemoCompanion(memo: Value(data)));
   }
 
   Future<int> updateModifyTime(int id, DateTime modifyTime) async {

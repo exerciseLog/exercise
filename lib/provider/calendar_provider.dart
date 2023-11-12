@@ -1,4 +1,5 @@
 import 'package:exercise_log/model/enum/memo_type.dart';
+import 'package:exercise_log/model/memo_model.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -15,7 +16,7 @@ class CalendarProvider with ChangeNotifier {
 
   List<DateTime> get memoHistory => _memo.keys.toList();
 
-  Map<MemoType, String> dropdownList = {};
+  List<Map<MemoType, MemoModel>> dropdownList = [];
 
   Future<void> getMemoHistory() async {
     var memoList =
@@ -23,18 +24,20 @@ class CalendarProvider with ChangeNotifier {
     for (var memo in memoList) {
       _memo.update(memo.writeTime, (value) => memo, ifAbsent: () => memo);
     }
-    notifyListeners();
+    reloadDropdownList(memoType, DateTime.now());
   }
 
   Future<void> addMemo(DateTime selectedDay, String memoText) async {
     if (memoType == MemoType.all) {
       memoType = MemoType.exercise;
     }
-    await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);
+    DateTime modifyTime = DateTime.now();
+    DateTime writeTime = DateTime(selectedDay.year, selectedDay.month,
+        selectedDay.day, modifyTime.hour, modifyTime.minute, modifyTime.second);
     var memoCompanion = MemoCompanion(
-      writeTime: drift.Value(selectedDay),
+      writeTime: drift.Value(writeTime),
       memo: drift.Value(memoText),
-      modifyTime: drift.Value(DateTime.now()),
+      modifyTime: drift.Value(modifyTime),
       memoType: drift.Value(memoType.name),
     );
 
@@ -52,16 +55,37 @@ class CalendarProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> deleteMemo(DateTime selectedDay) async {
-    await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(selectedDay, memoType);
+  Future<void> updateMemo(DateTime selectedDay, String memoText) async {
+    for (var i in dropdownList) {
+      if (i.entries.first.value.check) {
+        await MemoDao(GetIt.I<DbHelper>()).updateMemo(
+          i.entries.first.value.writeTime,
+          i.entries.first.value.memo,
+        );
+      }
+    }
+    reloadDropdownList(memoType, selectedDay);
+  }
 
-    _memo.removeWhere((key, value) => isEqualsDay(selectedDay, key));
+  Future<void> deleteMemo(DateTime selectedDay) async {
+    bool allCheck = true;
+    for (var i in dropdownList) {
+      if (i.entries.first.value.check) {
+        await MemoDao(GetIt.I<DbHelper>())
+            .deleteByWriteTime(i.entries.first.value.writeTime, memoType);
+      } else {
+        allCheck = false;
+      }
+    }
+    if (allCheck) {
+      _memo.removeWhere((key, value) => isEqualsDay(selectedDay, key));
+    }
+    reloadDropdownList(memoType, selectedDay);
     notifyListeners();
   }
 
   Future<void> finishTodayExercise() async {
     var today = DateTime.now();
-    await MemoDao(GetIt.I<DbHelper>()).deleteByWriteTime(today, memoType);
     var memoCompanion = MemoCompanion(
       writeTime: drift.Value(today),
       memo: const drift.Value(''),
@@ -80,6 +104,39 @@ class CalendarProvider with ChangeNotifier {
           modifyTime: DateTime.now(),
           memoType: memoType.name)
     });
+    notifyListeners();
+  }
+
+  Future<void> reloadDropdownList(MemoType Type, DateTime dateTime) async {
+    memoType = Type;
+
+    var memo = await MemoDao(GetIt.I<DbHelper>())
+        .findDayMemoByWriteTime(dateTime, memoType);
+    if (memo.isEmpty) {
+      dropdownList.clear();
+    } else {
+      dropdownList.clear();
+      for (var i in memo) {
+        dropdownList.add({
+          memoTypeMapper(i?.memoType ?? ""): MemoModel(
+            memoType: memoTypeMapper(i?.memoType ?? ""),
+            memo: i?.memo ?? "",
+            writeTime: i?.writeTime ?? DateTime.now(),
+          )
+        });
+      }
+    }
+    notifyListeners();
+  }
+
+  Future<void> resetMemoType() async {
+    memoType = MemoType.all;
+    notifyListeners();
+  }
+
+  Future<void> dropdownListCheck(int index) async {
+    dropdownList[index].entries.first.value.check =
+        !dropdownList[index].entries.first.value.check;
     notifyListeners();
   }
 }
