@@ -70,6 +70,7 @@ dependencies:
   flutter_chat_bubble: ^2.0.0
   image_picker: ^0.8.4+11
   firebase_storage: ^11.2.6
+  firebase_messaging: ^14.7.3
   
 dev_dependencies:
   flutter_test:

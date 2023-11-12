@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exercise_log/model/place_model.dart';
 import 'package:exercise_log/screens/chat_screen.dart';
@@ -167,8 +168,7 @@ class PositionProvider with ChangeNotifier {
                               content: SingleChildScrollView(
                                 child: Column(
                                   children: const [
-                                    Text('완료되지 않은 채팅 주문 내역이 있습니다.'),
-                                    Text('새 주문 요청을 하시겠습니까?')
+                                    Text('완료되지 않은 채팅 주문 내역이 있습니다. 새 주문 요청을 하시겠습니까?'),
                                   ]
                                 ),
                               ),
@@ -180,8 +180,9 @@ class PositionProvider with ChangeNotifier {
                                       dev.log('${value.id} => ${value.data()}');
                                       db.collection('newchat').doc(value.id).delete();
                                     }
-                                    _createChat(db, uid, userName, userImage, opName, context);
-                                    
+                                    var chatId = userName + ' : ' + DateTime.now().toString();
+                                    _createChat(db, chatId, uid, userName, userImage, opName, context);
+                                    _sendFCM(db, chatId, opName);
                                   },
                                   child: const Text('예')
                                 ),
@@ -198,7 +199,9 @@ class PositionProvider with ChangeNotifier {
                         );
                       }
                       else {
-                        _createChat(db, uid, userName, userImage, opName, context);
+                        var chatId = userName + ' : ' + DateTime.now().toString();
+                        _createChat(db, chatId, uid, userName, userImage, opName, context);
+                        _sendFCM(db, chatId, opName);
                       }
                     }
                   );
@@ -214,9 +217,9 @@ class PositionProvider with ChangeNotifier {
     });
   }
 
-  _createChat(FirebaseFirestore db, String uid, dynamic userName, dynamic userImage,
+  _createChat(FirebaseFirestore db, String chatId, String uid, dynamic userName, dynamic userImage,
    String opName, BuildContext context) {
-    var chatId = userName + ' : ' + DateTime.now().toString();
+    
       db.collection('newchat').doc(chatId).set({
         'member': [userName, opName]
       });    
@@ -230,6 +233,60 @@ class PositionProvider with ChangeNotifier {
       }).then((value) => Navigator.push(context, 
         MaterialPageRoute(builder: (context) => ChatScreen(chatId: chatId))
       ));
+  }
+
+  void _sendFCM(FirebaseFirestore db, String chatId, String opName) {
+    db.collection('user').where("userName", isEqualTo: opName).get()
+    .then((values) {
+      var fcmToken = 'none';
+      for(var value in values.docs) {
+        var data = value.data();
+        fcmToken = data['token'];
+        dev.log(fcmToken);
+        _postMessage(db, fcmToken, chatId);
+      }
+      // if(fcmToken != 'none') _postMessage(fcmToken, chatId);
+    });
+  }
+
+  Future<String?> _postMessage(FirebaseFirestore db, String fcmToken, String chatId) async {
+    try {
+      final ref = await db.collection('token').doc('oauth').get();
+      String accessToken = ref.data()!['a'];
+      final response = await post(
+        Uri.parse("https://fcm.googleapis.com/v1/projects/exerlog-dy/messages:send"),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: json.encode({
+          "message": {
+            "token": fcmToken,
+            "notification": {
+              "title": "Exerciselog",
+              "body" : "주문 요청이 왔습니다."
+            },
+            "data": {
+              "id": chatId
+            },
+          },
+
+        }),
+
+      );
+      if(response.statusCode == 200) {
+        dev.log('res.code = 200');
+        return null;
+      } else {
+        dev.log('res failed');
+        dev.log(response.toString());
+        return "Fail";
+      }
+    }
+    on HttpException catch(error) {
+      dev.log(error.message);
+      return error.message;
+    }
   }
   
   positionInit(Completer<GoogleMapController> mapController) {

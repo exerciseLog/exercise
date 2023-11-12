@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:exercise_log/chatting/chat/message.dart';
 import 'package:exercise_log/chatting/chat/new_message.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -16,14 +18,45 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _authentication = FirebaseAuth.instance;
-  
+  String chatId = 'chatId';
   User? loggedUser;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      getChatId();
+    });
     getCurrentUser();
+  }
+
+
+  Future<void> getChatId() async {
+    if(widget.chatId == 'fromHome') {
+      var db = FirebaseFirestore.instance;
+      var uid = FirebaseAuth.instance.currentUser!.uid;
+      var userData = await db.collection('user').doc(uid).get();
+      var userName = userData.data()!['userName'];
+      db.collection('newchat').where("member", arrayContains: userName)
+      .get().then((values) {
+        if(values.size == 0) {
+          Fluttertoast.showToast(msg: '현재 활성화된 채팅이 없습니다.');
+        }
+        else {
+          for(var value in values.docs) {
+            setState(() {
+              chatId = value.id;
+            });
+          }
+        }
+      });
+    }
+    else {
+      setState(() {
+        chatId = widget.chatId;
+      });
+    }
   }
 
   void getCurrentUser() {
@@ -70,9 +103,9 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           children: [
             Expanded(
-              child: Messages(chatId: widget.chatId),
+              child: Messages(chatId: chatId),
             ),
-            NewMessage(chatId: widget.chatId),
+            NewMessage(chatId: chatId),
           ],
         ),
       ),

@@ -7,16 +7,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
-class LoginSignupScreen extends StatefulWidget {
-  const LoginSignupScreen({Key? key}) : super(key: key);
+class GoogleSignupScreen extends StatefulWidget {
+  const GoogleSignupScreen({Key? key}) : super(key: key);
 
   @override
-  _LoginSignupScreenState createState() => _LoginSignupScreenState();
+  _GoogleSignupScreenState createState() => _GoogleSignupScreenState();
 }
 
-class _LoginSignupScreenState extends State<LoginSignupScreen> {
+class _GoogleSignupScreenState extends State<GoogleSignupScreen> {
   final _authentication = FirebaseAuth.instance;
 
   bool isSignupScreen = true;
@@ -48,22 +47,6 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
         );
       },
     );
-  }
-  Future<UserCredential> signInWithGoogle() async {
-    // Trigger the authentication flow
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-    // Obtain the auth details from the request
-    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
-
-    // Create a new credential
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
-
-    // Once signed in, return the UserCredential
-    return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
   @override
@@ -165,33 +148,6 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  isSignupScreen = false;
-                                });
-                              },
-                              child: Column(
-                                children: [
-                                  Text(
-                                    '로그인',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: !isSignupScreen
-                                            ? Palette.activeColor
-                                            : Palette.textColor1),
-                                  ),
-                                  if (!isSignupScreen)
-                                    Container(
-                                      margin: const EdgeInsets.only(top: 3),
-                                      height: 2,
-                                      width: 55,
-                                      color: const Color.fromARGB(255, 85, 102, 255),
-                                    )
-                                ],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
                                   isSignupScreen = true;
                                 });
                               },
@@ -279,7 +235,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                             Radius.circular(35.0),
                                           ),
                                         ),
-                                        hintText: '아이디',
+                                        hintText: '닉네임',
                                         hintStyle: TextStyle(
                                             fontSize: 14,
                                             color: Palette.textColor1),
@@ -288,90 +244,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   const SizedBox(
                                     height: 8,
                                   ),
-                                  TextFormField(
-                                    keyboardType: TextInputType.emailAddress,
-                                    key: const ValueKey(2),
-                                    validator: (value) {
-                                      if (value!.isEmpty ||
-                                          !value.contains('@')) {
-                                        return '유효한 이메일 주소 형식을 입력해 주세요.';
-                                      }
-                                      return null;
-                                    },
-                                    onSaved: (value) {
-                                      userEmail = value!;
-                                    },
-                                    onChanged: (value) {
-                                      userEmail = value;
-                                    },
-                                    decoration: const InputDecoration(
-                                        prefixIcon: Icon(
-                                          Icons.email,
-                                          color: Palette.iconColor,
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Palette.textColor1),
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(35.0),
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Palette.textColor1),
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(35.0),
-                                          ),
-                                        ),
-                                        hintText: '이메일',
-                                        hintStyle: TextStyle(
-                                            fontSize: 14,
-                                            color: Palette.textColor1),
-                                        contentPadding: EdgeInsets.all(10)),
-                                  ),
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                  TextFormField(
-                                    obscureText: true,
-                                    key: const ValueKey(3),
-                                    validator: (value) {
-                                      if (value!.isEmpty || value.length < 6) {
-                                        return '비밀번호를 6자리 이상 입력해 주세요.';
-                                      }
-                                      return null;
-                                    },
-                                    onSaved: (value) {
-                                      userPassword = value!;
-                                    },
-                                    onChanged: (value) {
-                                      userPassword = value;
-                                    },
-                                    decoration: const InputDecoration(
-                                        prefixIcon: Icon(
-                                          Icons.lock,
-                                          color: Palette.iconColor,
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Palette.textColor1),
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(35.0),
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Palette.textColor1),
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(35.0),
-                                          ),
-                                        ),
-                                        hintText: '비밀번호',
-                                        hintStyle: TextStyle(
-                                            fontSize: 14,
-                                            color: Palette.textColor1),
-                                        contentPadding: EdgeInsets.all(10)),
-                                  )
+                                  
                                 ],
                               ),
                             ),
@@ -512,23 +385,21 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                           _tryValidation();
 
                           try {
-                            final newUser = await _authentication
-                                .createUserWithEmailAndPassword(
-                              email: userEmail,
-                              password: userPassword,
-                            );
-
+                            final user = FirebaseAuth.instance.currentUser;
+                            final userUid = user!.uid;
+                            final userEmail = user.email;
+                          
                             final refImage = FirebaseStorage.instance
                                 .ref()
                                 .child('picked_image')
-                                .child('${newUser.user!.uid}.png');
+                                .child('$userUid.png');
 
                             await refImage.putFile(userPickedImage!);
                             final url = await refImage.getDownloadURL();
 
                             await FirebaseFirestore.instance
                                 .collection('user')
-                                .doc(newUser.user!.uid)
+                                .doc(userUid)
                                 .set(
                               {
                                 'userName': userName,
@@ -537,20 +408,18 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                               },
                             );
 
-                            if (newUser.user != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const HomeScreen();
-                                  },
-                                ),
-                              );
-                              
-                              setState(() {
-                                showSpinner = false;
-                              });
-                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const HomeScreen();
+                                },
+                              ),
+                            );
+                            
+                            setState(() {
+                              showSpinner = false;
+                            });
                           } catch (e) {
                             print(e);
                             if (mounted) {
@@ -566,40 +435,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             }
                           }
                         }
-                        if (!isSignupScreen) {
-                          _tryValidation();
-
-                          try {
-                            final newUser = await _authentication
-                                .signInWithEmailAndPassword(
-                              email: userEmail,
-                              password: userPassword,
-                            );
-                            if (newUser.user != null) {
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (context) {
-                              //       return ChatScreen();
-                              //     },
-                              //   ),
-                              // );
-
-                              if(context.mounted) {
-                                setState(() {
-                                  showSpinner = false;
-                                });
-                              }
-                            }
-                          } catch (e) {
-                            print(e);
-                            if(context.mounted) {
-                              setState(() {
-                                showSpinner = false;
-                              });
-                            }
-                          }
-                        }
+                        
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -631,36 +467,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                 ),
               ),
               //전송버튼
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeIn,
-                top: isSignupScreen
-                    ? MediaQuery.of(context).size.height - 185
-                    : MediaQuery.of(context).size.height - 225,
-                right: 0,
-                left: 0,
-                child: Column(
-                  children: [
-                    Text(isSignupScreen ? 'or Signup with' : 'or Signin with'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    TextButton.icon(
-                      onPressed: () {
-                        signInWithGoogle();
-                      },
-                      style: TextButton.styleFrom(
-                          foregroundColor: Colors.white, minimumSize: const Size(155, 40),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
-                          backgroundColor: Palette.googleColor),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Google'),
-                    ),
-                  ],
-                ),
-              ),
-              //구글 로그인 버튼
+              
             ],
           ),
         ),
