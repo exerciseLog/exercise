@@ -49,59 +49,36 @@ class _CalendarMemoState extends State<CalendarMemo> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          calendarWidget(),
-          memoTypeButtonWidget(),
-          TextField(
-            focusNode: memoTextFocus,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: _memoController.text.isNotEmpty
-                  ? '오늘의 ${context.read<CalendarProvider>().memoType.buttonValue}'
-                  : "기록하기",
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                calendarWidget(),
+                SizedBox(height: 50, child: memoTypeButtonWidget()),
+                SizedBox(height: 100, child: memoInputFiled()),
+                memoList(),
+              ],
             ),
-            maxLines: 3,
-            controller: _memoController,
           ),
-          memoList(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              OutlinedButton(
-                onPressed: () {
-                  context.read<CalendarProvider>().memoType != MemoType.all
-                      ? _memoSaved(context)
-                      : {};
-                },
-                child: const Text('저장'),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: OutlinedButton(
-                  onPressed: () => _memoDelete(context),
-                  child: const Text('삭제',
-                      style: TextStyle(color: Colors.redAccent)),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        ),
+        saveButton(),
+      ],
     );
   }
 
   Widget memoList() {
     return Consumer<CalendarProvider>(
       builder: (context, provider, child) {
-        return SizedBox(
-          height: 60,
-          child: ListView.builder(
-            padding: EdgeInsets.zero,
-            itemCount: provider.dropdownList.length,
-            itemBuilder: (BuildContext context, int index) {
-              return ExpansionTile(
+        return ListView.builder(
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          itemCount: provider.dropdownList.length,
+          itemBuilder: (BuildContext context, int index) {
+            return SizedBox(
+              height: 70,
+              child: ExpansionTile(
                   title: Text(provider.dropdownList[index].entries
                       .toList()
                       .first
@@ -113,9 +90,9 @@ class _CalendarMemoState extends State<CalendarMemo> {
                         .toList()
                         .first
                         .value)
-                  ]);
-            },
-          ),
+                  ]),
+            );
+          },
         );
       },
     );
@@ -140,9 +117,10 @@ class _CalendarMemoState extends State<CalendarMemo> {
       return TableCalendar(
         headerStyle: const HeaderStyle(
           titleCentered: true,
-          formatButtonVisible: false,
+          formatButtonVisible: true,
         ),
-        availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+        headerVisible: true,
+        // availableCalendarFormats: const {CalendarFormat.month: 'Month'},
         locale: 'ko_KR',
         firstDay: kFirstDay,
         lastDay: kLastDay,
@@ -301,5 +279,42 @@ class _CalendarMemoState extends State<CalendarMemo> {
     } else if (end != null) {
       _selectedEvents.value = _getEventsForDay(end);
     }
+  }
+
+  Widget saveButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        OutlinedButton(
+          onPressed: () {
+            context.read<CalendarProvider>().memoType != MemoType.all
+                ? _memoSaved(context)
+                : {};
+          },
+          child: const Text('저장'),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: OutlinedButton(
+            onPressed: () => _memoDelete(context),
+            child: const Text('삭제', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget memoInputFiled() {
+    return TextField(
+      focusNode: memoTextFocus,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: _memoController.text.isNotEmpty
+            ? '오늘의 ${context.read<CalendarProvider>().memoType.buttonValue}'
+            : "기록하기",
+      ),
+      maxLines: 3,
+      controller: _memoController,
+    );
   }
 }
