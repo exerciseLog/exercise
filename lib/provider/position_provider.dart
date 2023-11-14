@@ -15,7 +15,6 @@ import 'package:intl/intl.dart';
 import 'dart:math';
 import 'dart:developer' as dev;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:animations/animations.dart';
 
 class PositionProvider with ChangeNotifier {
   static String apiKey = "AIzaSyDmOFlGdyiX02ZHhgVgxkaARUJhoGDoSNs";
@@ -142,7 +141,7 @@ class PositionProvider with ChangeNotifier {
                 },
                 child: const Text("전화 연결")
               ),
-              TextButton(
+              /* TextButton(
                 onPressed: () async {
                   var user = FirebaseAuth.instance.currentUser;
                   var uid = user!.uid;
@@ -209,6 +208,47 @@ class PositionProvider with ChangeNotifier {
                   
                 },
                 child: const Text("채팅으로 연결")
+              ), */
+              TextButton(
+                onPressed: () async {
+                  var user = FirebaseAuth.instance.currentUser;
+                  var uid = user!.uid;
+                  var db = FirebaseFirestore.instance;
+                  final userData = await db
+                    .collection('user')
+                    .doc(uid)
+                    .get();
+                  var userName = userData.data()!['userName'];
+                  var userImage = userData['picked_image'];
+                  var opName = detail.name;
+
+                  if(userName == opName) {
+                    Fluttertoast.showToast(msg: '잘못된 접근입니다.');
+                    return;
+                  }
+
+                  db.collection('newchat').doc(opName).get()
+                  .then((value) {
+                    if(value.exists){
+                      if(value['member'].toString().contains(userName)) {
+                        Fluttertoast.showToast(msg: '이미 참여하고 있는 채팅방입니다.');
+                      }
+                      else {
+                        db.collection('newchat').doc(opName).update({
+                          'member': FieldValue.arrayUnion([userName])
+                        }).then((value) => Navigator.push(
+                          context, MaterialPageRoute(builder: (context) => ChatScreen(chatId: opName))
+                        ));
+
+                      }
+                    }
+                    else {
+                      _createChat(db, opName, uid, userName, userImage, opName, context);
+                    }
+                  });
+                                                  
+                },
+                child: const Text('음식점 채팅방 입장')
               )
             ],
           );

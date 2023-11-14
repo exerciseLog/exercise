@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:exercise_log/screens/map_screen.dart';
 import 'package:exercise_log/screens/nutrition_screen.dart';
 import 'package:exercise_log/screens/calendar_memo.dart';
@@ -12,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'google_login_screen.dart';
+import 'chatlist_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
       title: 'BMI',
     ),
     const TakeoutScreen(),
-    const ChatScreen(chatId: 'fromHome'),
+    const ChatListScreen(),
   ];
 
   @override
