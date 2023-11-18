@@ -43,7 +43,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
     
     return Scaffold(
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const SizedBox(height: 30),
+          const Text("참가 중인 채팅", 
+            style: TextStyle(
+              fontSize: 20,
+              fontFamily: 'NaverNanum',
+              fontWeight: FontWeight.w600)
+          ),
           Expanded(
             child: Column(
               children: [
@@ -68,7 +76,6 @@ class ChatList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
     return StreamBuilder(
       stream: FirebaseFirestore.instance
       .collection("newchat").where("member", arrayContains: userName)
@@ -81,9 +88,10 @@ class ChatList extends StatelessWidget {
         }
         final docs = snapshot.data!.docs;
         log(docs.length.toString());
-        return ListView.builder(
+        return ListView.separated(
           shrinkWrap: true,
           itemCount: docs.length,
+          separatorBuilder: (context, index) => const Divider(),
           itemBuilder: (context, index) {
             return ListTile(
               title: Text(docs[index].id),

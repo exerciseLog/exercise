@@ -18,6 +18,8 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _authentication = FirebaseAuth.instance;
+  var db = FirebaseFirestore.instance;
+  var uid = FirebaseAuth.instance.currentUser!.uid;
   String chatId = 'chatId';
   User? loggedUser;
 
@@ -34,8 +36,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> getChatId() async {
     if(widget.chatId == 'fromHome') {
-      var db = FirebaseFirestore.instance;
-      var uid = FirebaseAuth.instance.currentUser!.uid;
       var userData = await db.collection('user').doc(uid).get();
       var userName = userData.data()!['userName'];
       db.collection('newchat').where("member", arrayContains: userName)
@@ -75,7 +75,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat screen'),
+        title: Text(chatId),
         backgroundColor: const Color(0xFF9bbbd4),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_sharp, color: Colors.black54),
@@ -91,9 +91,18 @@ class _ChatScreenState extends State<ChatScreen> {
               Icons.exit_to_app_sharp,
               color: Colors.blue,
             ),
-            onPressed: () {
-              _authentication.signOut();
-              //Navigator.pop(context);
+            onPressed: () async {
+              //_authentication.signOut();
+              var ref = db.collection('newchat').doc(chatId);
+              var userData = await db.collection('user').doc(uid).get();
+              var userName = userData.data()!['userName'];
+              ref.update({
+                "member": FieldValue.arrayRemove([userName])
+              }).then((value) {
+                Fluttertoast.showToast(msg: '채팅방에서 나갔습니다.');
+                Navigator.pop(context);
+              });
+              
             },
           )
         ],

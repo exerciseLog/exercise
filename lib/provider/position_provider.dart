@@ -265,7 +265,7 @@ class PositionProvider with ChangeNotifier {
       });    
       db.collection('newchat').doc(chatId)
       .collection('chat').doc().set({
-        'text': "주문 요청입니다!",
+        'text': "첫 채팅입니다!",
         'time': DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
         'userID': uid,
         'userName': userName,
