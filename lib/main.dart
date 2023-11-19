@@ -53,15 +53,16 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Chatting app',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return const MyHome();
-          }
-          return const LoginSignupScreen();
-        },
-      ),
+      home: const MyHome(),
+      // home: StreamBuilder(
+      //   stream: FirebaseAuth.instance.authStateChanges(),
+      //   builder: (context, snapshot) {
+      //     if (snapshot.hasData) {
+      //       return const MyHome();
+      //     }
+      //     return const LoginSignupScreen();
+      //   },
+      // ),
     );
   }
 }
@@ -78,7 +79,7 @@ class _MyHomeState extends State<MyHome> {
   @override
   void initState() {
     super.initState();
-    if(!GetIt.I.isRegistered<DbHelper>()){
+    if (!GetIt.I.isRegistered<DbHelper>()) {
       final database = DbHelper();
       GetIt.I.registerSingleton<DbHelper>(database);
     }
